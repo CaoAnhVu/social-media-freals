@@ -1,5 +1,6 @@
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
+import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 
 const signupUser = async (req, res) => {
   try {
@@ -32,12 +33,18 @@ const signupUser = async (req, res) => {
     await newUser.save();
 
     // Respond with success if user is created
-    res.status(201).json({
-      _id: newUser._id,
-      name: newUser.name,
-      email: newUser.email,
-      username: newUser.username,
-    });
+    if (newUser) {
+      generateTokenAndSetCookie(newUser._id, res);
+
+      res.status(201).json({
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        username: newUser.username,
+      });
+    } else {
+      res.status(400).json({ message: "Invalid user data" });
+    }
   } catch (err) {
     // Log the error and send a generic message to the client
     console.error("Error in signupUser:", err.message);
