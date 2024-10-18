@@ -43,37 +43,38 @@ export default function SignupCard() {
   };
 
   return (
-    <Flex align={"center"} justify={"center"}>
+    <Flex align={"center"} justify={"center"} minH={"100vh"} bg={useColorModeValue("gray.50", "gray.800")}>
       <Stack spacing={8} mx={"auto"} maxW={"lg"} py={12} px={6}>
         <Stack align={"center"}>
-          <Heading fontSize={"4xl"} textAlign={"center"}>
-            Sign up
-          </Heading>
+          <Heading fontSize={"4xl"}>Create your account Freals</Heading>
+          <Text fontSize={"lg"} color={useColorModeValue("gray.600", "gray.400")}>
+            to enjoy all our cool <Link color={"blue.400"}>features</Link> ✌️
+          </Text>
         </Stack>
-        <Box rounded={"lg"} bg={useColorModeValue("white", "gray.dark")} boxShadow={"lg"} p={8}>
+        <Box rounded={"lg"} bg={useColorModeValue("white", "gray.700")} boxShadow={"lg"} p={8}>
           <Stack spacing={4}>
             <HStack>
               <Box>
-                <FormControl isRequired>
+                <FormControl id="name" isRequired>
                   <FormLabel>Full name</FormLabel>
-                  <Input type="text" onChange={(e) => setInputs({ ...inputs, name: e.target.value })} value={inputs.name} />
+                  <Input type="text" placeholder="Your full name" onChange={(e) => setInputs({ ...inputs, name: e.target.value })} value={inputs.name} />
                 </FormControl>
               </Box>
               <Box>
-                <FormControl isRequired>
+                <FormControl id="username" isRequired>
                   <FormLabel>Username</FormLabel>
-                  <Input type="text" onChange={(e) => setInputs({ ...inputs, username: e.target.value })} value={inputs.username} />
+                  <Input type="text" placeholder="Your username" onChange={(e) => setInputs({ ...inputs, username: e.target.value })} value={inputs.username} />
                 </FormControl>
               </Box>
             </HStack>
-            <FormControl isRequired>
+            <FormControl id="email" isRequired>
               <FormLabel>Email address</FormLabel>
-              <Input type="email" onChange={(e) => setInputs({ ...inputs, email: e.target.value })} value={inputs.email} />
+              <Input type="email" placeholder="example@email.com" onChange={(e) => setInputs({ ...inputs, email: e.target.value })} value={inputs.email} />
             </FormControl>
-            <FormControl isRequired>
+            <FormControl id="password" isRequired>
               <FormLabel>Password</FormLabel>
               <InputGroup>
-                <Input type={showPassword ? "text" : "password"} onChange={(e) => setInputs({ ...inputs, password: e.target.value })} value={inputs.password} />
+                <Input type={showPassword ? "text" : "password"} placeholder="Password" onChange={(e) => setInputs({ ...inputs, password: e.target.value })} value={inputs.password} />
                 <InputRightElement h={"full"}>
                   <Button variant={"ghost"} onClick={() => setShowPassword((showPassword) => !showPassword)}>
                     {showPassword ? <ViewIcon /> : <ViewOffIcon />}
@@ -83,12 +84,11 @@ export default function SignupCard() {
             </FormControl>
             <Stack spacing={10} pt={2}>
               <Button
-                loadingText="Submitting"
                 size="lg"
-                bg={useColorModeValue("gray.600", "gray.700")}
+                bg={"blue.400"}
                 color={"white"}
                 _hover={{
-                  bg: useColorModeValue("gray.700", "gray.800"),
+                  bg: "blue.500",
                 }}
                 onClick={handleSignup}
               >
