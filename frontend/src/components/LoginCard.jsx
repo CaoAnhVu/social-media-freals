@@ -43,8 +43,8 @@ export default function LoginCard() {
   };
 
   return (
-    <Flex align={"center"} justify={"center"} minH={"100vh"} bg={useColorModeValue("gray.50", "gray.800")}>
-      <Stack spacing={8} mx={"auto"} maxW={"lg"} py={12} px={6}>
+    <Flex align={"center"} justify={"center"} minH={"90vh"} bg={useColorModeValue("gray.50", "gray.800")}>
+      <Stack spacing={8} mx={"auto"} maxW={"lg"} py={6} px={6}>
         <Stack align={"center"}>
           <Heading fontSize={"4xl"}>Login to your account</Heading>
         </Stack>

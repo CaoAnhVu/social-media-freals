@@ -43,8 +43,8 @@ export default function SignupCard() {
   };
 
   return (
-    <Flex align={"center"} justify={"center"} minH={"100vh"} bg={useColorModeValue("gray.50", "gray.800")}>
-      <Stack spacing={8} mx={"auto"} maxW={"lg"} py={12} px={6}>
+    <Flex align={"center"} justify={"center"} minH={"80vh"} bg={useColorModeValue("gray.50", "gray.800")}>
+      <Stack spacing={8} mx={"auto"} maxW={"lg"} py={6} px={6}>
         <Stack align={"center"}>
           <Heading fontSize={"4xl"}>Create your account Freals</Heading>
           <Text fontSize={"lg"} color={useColorModeValue("gray.600", "gray.400")}>
