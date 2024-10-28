@@ -35,7 +35,7 @@ export default function SignupCard() {
         return;
       }
 
-      localStorage.setItem("user-threads", JSON.stringify(data));
+      localStorage.setItem("user-freals", JSON.stringify(data));
       setUser(data);
     } catch (error) {
       showToast("Error", error, "error");
@@ -43,7 +43,7 @@ export default function SignupCard() {
   };
 
   return (
-    <Flex align={"center"} justify={"center"} minH={"80vh"} bg={useColorModeValue("gray.50", "gray.800")}>
+    <Flex align={"center"} justify={"center"}>
       <Stack spacing={8} mx={"auto"} maxW={"lg"} py={6} px={6}>
         <Stack align={"center"}>
           <Heading fontSize={"4xl"}>Create your account Freals</Heading>
@@ -51,7 +51,7 @@ export default function SignupCard() {
             to enjoy all our cool <Link color={"blue.400"}>features</Link> ✌️
           </Text>
         </Stack>
-        <Box rounded={"lg"} bg={useColorModeValue("white", "gray.700")} boxShadow={"lg"} p={8}>
+        <Box rounded={"lg"} bg={useColorModeValue("white", "gray.dark")} boxShadow={"lg"} p={8}>
           <Stack spacing={4}>
             <HStack>
               <Box>
@@ -85,10 +85,10 @@ export default function SignupCard() {
             <Stack spacing={10} pt={2}>
               <Button
                 size="lg"
-                bg={"blue.400"}
+                bg={useColorModeValue("gray.600", "gray.700")}
                 color={"white"}
                 _hover={{
-                  bg: "blue.500",
+                  bg: useColorModeValue("gray.700", "gray.800"),
                 }}
                 onClick={handleSignup}
               >

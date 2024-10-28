@@ -43,12 +43,12 @@ export default function LoginCard() {
   };
 
   return (
-    <Flex align={"center"} justify={"center"} minH={"90vh"} bg={useColorModeValue("gray.50", "gray.800")}>
+    <Flex align={"center"} justify={"center"}>
       <Stack spacing={8} mx={"auto"} maxW={"lg"} py={6} px={6}>
         <Stack align={"center"}>
           <Heading fontSize={"4xl"}>Login to your account</Heading>
         </Stack>
-        <Box rounded={"lg"} bg={useColorModeValue("white", "gray.700")} boxShadow={"lg"} p={8} w={{ base: "full", sm: "400px" }}>
+        <Box rounded={"lg"} bg={useColorModeValue("white", "gray.dark")} boxShadow={"lg"} p={8} w={{ base: "full", sm: "400px" }}>
           <Stack spacing={4}>
             <FormControl id="username" isRequired>
               <FormLabel>Username</FormLabel>
@@ -74,10 +74,10 @@ export default function LoginCard() {
               <Button
                 loadingText="Logging in"
                 size="lg"
-                bg={"blue.400"}
+                bg={useColorModeValue("gray.600", "gray.700")}
                 color={"white"}
                 _hover={{
-                  bg: "blue.500",
+                  bg: useColorModeValue("gray.700", "gray.800"),
                 }}
                 onClick={handleLogin}
                 isLoading={loading}
