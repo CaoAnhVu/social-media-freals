@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@chakra-ui/avatar": "^2.3.0",
+    "@chakra-ui/button": "^2.1.0",
     "@chakra-ui/color-mode": "^2.2.0",
     "@chakra-ui/icons": "^2.2.4",
     "@chakra-ui/image": "^2.1.0",
