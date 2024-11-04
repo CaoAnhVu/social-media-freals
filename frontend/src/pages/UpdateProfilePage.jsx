@@ -38,6 +38,7 @@ export default function UpdateProfilePage() {
         showToast("Error", data.error, "error");
         return;
       }
+      console.log("Profile updated successfully");
       showToast("Success", "Profile updated successfully", "success");
       setUser(data);
       localStorage.setItem("user-freals", JSON.stringify(data));
@@ -47,6 +48,7 @@ export default function UpdateProfilePage() {
       setUpdating(false);
     }
   };
+
   return (
     <form onSubmit={handleSubmit}>
       <Flex align={"center"} justify={"center"} my={6}>

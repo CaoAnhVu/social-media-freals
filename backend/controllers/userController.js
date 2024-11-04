@@ -3,52 +3,52 @@ import Post from "../models/postModel.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 import { v2 as cloudinary } from "cloudinary";
+import mongoose from "mongoose";
 
-//Get User Profile
 const getUserProfile = async (req, res) => {
-  const { username } = req.params;
+  // We will fetch user profile either with username or userId
+  // query is either username or userId
+  const { query } = req.params;
+
   try {
-    const user = await User.findOne({ username }).select("-password").select("-updateAt");
-    if (!user) return res.status(400).json({ error: "User not found" });
+    let user;
+
+    // query is userId
+    if (mongoose.Types.ObjectId.isValid(query)) {
+      user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
+    } else {
+      // query is username
+      user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
+    }
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
     res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
-    console.log("Error in getUserProfile:", err.message);
+    console.log("Error in getUserProfile: ", err.message);
   }
 };
 
-//signup user
 const signupUser = async (req, res) => {
   try {
     const { name, email, username, password } = req.body;
-
-    // Validate required fields
-    if (!name || !email || !username || !password) {
-      return res.status(400).json({ error: "All fields are required" });
-    }
-
-    // Check if user already exists (by email or username)
     const user = await User.findOne({ $or: [{ email }, { username }] });
+
     if (user) {
       return res.status(400).json({ error: "User already exists" });
     }
-
-    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create a new user
     const newUser = new User({
       name,
       email,
       username,
       password: hashedPassword,
     });
-
-    // Save the new user to the database
     await newUser.save();
 
-    // Respond with success if user is created
     if (newUser) {
       generateTokenAndSetCookie(newUser._id, res);
 
@@ -64,20 +64,26 @@ const signupUser = async (req, res) => {
       res.status(400).json({ error: "Invalid user data" });
     }
   } catch (err) {
-    // Log the error and send a generic message to the client
-    res.status(500).json({ error: "Server error. Please try again later." });
-    console.error("Error in signupUser:", err.message);
+    res.status(500).json({ error: err.message });
+    console.log("Error in signupUser: ", err.message);
   }
 };
 
-//login user
 const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
     const isPasswordCorrect = await bcrypt.compare(password, user?.password || "");
-    if (!user || !isPasswordCorrect) return res.status(400).json({ error: " Invalid username or password" });
+
+    if (!user || !isPasswordCorrect) return res.status(400).json({ error: "Invalid username or password" });
+
+    if (user.isFrozen) {
+      user.isFrozen = false;
+      await user.save();
+    }
+
     generateTokenAndSetCookie(user._id, res);
+
     res.status(200).json({
       _id: user._id,
       name: user.name,
@@ -88,22 +94,20 @@ const loginUser = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
-    console.log("Error in loginUser:", error.message);
+    console.log("Error in loginUser: ", error.message);
   }
 };
-//logout User
 
-const logoutUser = async (req, res) => {
+const logoutUser = (req, res) => {
   try {
     res.cookie("jwt", "", { maxAge: 1 });
-    res.status(200).json({ message: " User logged out successfully" });
+    res.status(200).json({ message: "User logged out successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
-    console.log("Error in loginUser:", err.message);
+    console.log("Error in signupUser: ", err.message);
   }
 };
 
-//follow/UnfollowUser
 const followUnFollowUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -132,8 +136,6 @@ const followUnFollowUser = async (req, res) => {
     console.log("Error in followUnFollowUser: ", err.message);
   }
 };
-
-//Update User
 
 const updateUser = async (req, res) => {
   const { name, email, username, password, bio } = req.body;
@@ -183,6 +185,7 @@ const updateUser = async (req, res) => {
 
     // password should be null in response
     user.password = null;
+
     res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -190,4 +193,48 @@ const updateUser = async (req, res) => {
   }
 };
 
-export { signupUser, loginUser, logoutUser, followUnFollowUser, updateUser, getUserProfile };
+const getSuggestedUsers = async (req, res) => {
+  try {
+    // exclude the current user from suggested users array and exclude users that current user is already following
+    const userId = req.user._id;
+
+    const usersFollowedByYou = await User.findById(userId).select("following");
+
+    const users = await User.aggregate([
+      {
+        $match: {
+          _id: { $ne: userId },
+        },
+      },
+      {
+        $sample: { size: 10 },
+      },
+    ]);
+    const filteredUsers = users.filter((user) => !usersFollowedByYou.following.includes(user._id));
+    const suggestedUsers = filteredUsers.slice(0, 4);
+
+    suggestedUsers.forEach((user) => (user.password = null));
+
+    res.status(200).json(suggestedUsers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const freezeAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    user.isFrozen = true;
+    await user.save();
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export { signupUser, loginUser, logoutUser, followUnFollowUser, updateUser, getUserProfile, getSuggestedUsers, freezeAccount };
