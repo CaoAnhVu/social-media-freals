@@ -42,6 +42,7 @@ function App() {
           <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to={"/auth"} />} />
         </Routes>
         {user && <LogoutButton />}
+        {user && <CreatePost />}
       </Container>
     </Box>
   );

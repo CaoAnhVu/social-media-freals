@@ -2,6 +2,7 @@ import { Button, Flex, FormControl, FormLabel, Heading, Input, Stack, useColorMo
 import { useRef, useState } from "react";
 import { useRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
+import { useNavigate } from "react-router-dom";
 import usePreviewImg from "../hooks/usePreviewImg";
 import useShowToast from "../hooks/useShowToast";
 
@@ -15,6 +16,9 @@ export default function UpdateProfilePage() {
     password: "",
   });
   const fileRef = useRef(null);
+
+  const navigate = useNavigate();
+
   const [updating, setUpdating] = useState(false);
 
   const showToast = useShowToast();
@@ -38,30 +42,32 @@ export default function UpdateProfilePage() {
         showToast("Error", data.error, "error");
         return;
       }
-      console.log("Profile updated successfully");
       showToast("Success", "Profile updated successfully", "success");
       setUser(data);
       localStorage.setItem("user-freals", JSON.stringify(data));
     } catch (error) {
-      showToast("Error", error, "error");
+      showToast("Error", error.message || "An error occurred", "error");
     } finally {
       setUpdating(false);
     }
   };
 
+  const handleCancel = () => {
+    navigate(-1);
+  };
   return (
     <form onSubmit={handleSubmit}>
       <Flex align={"center"} justify={"center"} my={6}>
-        <Stack spacing={4} w={"full"} maxW={"xl"} bg={useColorModeValue("white", "gray.dark")} rounded={"xl"} boxShadow={"lg"} p={6}>
+        <Stack spacing={4} w={"full"} maxW={"md"} bg={useColorModeValue("white", "gray.dark")} rounded={"xl"} boxShadow={"lg"} p={6}>
           <Heading lineHeight={1.1} fontSize={{ base: "2xl", sm: "3xl" }}>
             User Profile Edit
           </Heading>
           <FormControl id="userName">
             <Stack direction={["column", "row"]} spacing={6}>
               <Center>
-                <Avatar size="2xl" boxShadow={"md"} src={imgUrl || user.profilePic} />
+                <Avatar size="xl" boxShadow={"md"} src={imgUrl || user.profilePic} />
               </Center>
-              <Center w="ml">
+              <Center w="full">
                 <Button w="full" onClick={() => fileRef.current.click()}>
                   Change Avatar
                 </Button>
@@ -97,6 +103,7 @@ export default function UpdateProfilePage() {
               _hover={{
                 bg: "red.500",
               }}
+              onClick={handleCancel}
             >
               Cancel
             </Button>

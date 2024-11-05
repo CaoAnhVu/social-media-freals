@@ -17,13 +17,13 @@ const UserPage = () => {
 
   useEffect(() => {
     const getPosts = async () => {
-      if (!user) return;
+      if (!username) return;
       setFetchingPosts(true);
       try {
         const res = await fetch(`/api/posts/user/${username}`);
         const data = await res.json();
         console.log(data);
-        setPosts(data);
+        setPosts(Array.isArray(data) ? data : []); // Đảm bảo data là một mảng
       } catch (error) {
         showToast("Error", error.message, "error");
         setPosts([]);
@@ -33,7 +33,7 @@ const UserPage = () => {
     };
 
     getPosts();
-  }, [username, showToast, setPosts, user]);
+  }, [username, showToast, setPosts]);
 
   if (!user && loading) {
     return (
@@ -49,16 +49,14 @@ const UserPage = () => {
     <>
       <UserHeader user={user} />
 
-      {!fetchingPosts && posts.length === 0 && <h1>User has not posts.</h1>}
+      {!fetchingPosts && (!posts || posts.length === 0) && <h1>User has not posts.</h1>}
       {fetchingPosts && (
         <Flex justifyContent={"center"} my={12}>
           <Spinner size={"xl"} />
         </Flex>
       )}
 
-      {posts.map((post) => (
-        <Post key={post._id} post={post} postedBy={post.postedBy} />
-      ))}
+      {posts && posts.map((post) => <Post key={post._id} post={post} postedBy={post.postedBy} />)}
     </>
   );
 };

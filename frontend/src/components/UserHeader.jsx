@@ -9,15 +9,21 @@ import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { Link as RouterLink } from "react-router-dom";
 import useFollowUnfollow from "../hooks/useFollowUnfollow";
+import useShowToast from "../hooks/useShowToast";
 
 const UserHeader = ({ user }) => {
   const toast = useToast();
+
   const currentUser = useRecoilValue(userAtom); // logged in user
+
   const { handleFollowUnfollow, following, updating } = useFollowUnfollow(user);
 
-  const copyURL = () => {
-    const currentURL = window.location.href;
-    navigator.clipboard.writeText(currentURL).then(() => {
+  const showToast = useShowToast();
+
+  const copyURL = async () => {
+    try {
+      const currentURL = window.location.href;
+      await navigator.clipboard.writeText(currentURL);
       toast({
         title: "Success.",
         status: "success",
@@ -25,7 +31,15 @@ const UserHeader = ({ user }) => {
         duration: 3000,
         isClosable: true,
       });
-    });
+    } catch (error) {
+      toast({
+        title: "Error.",
+        status: "error",
+        description: "Failed to copy profile link.",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   return (

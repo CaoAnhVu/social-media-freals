@@ -1,10 +1,12 @@
 import User from "../models/userModel.js";
 import Post from "../models/postModel.js";
+import CloudinaryController from "./cloudinary.controller.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 import { v2 as cloudinary } from "cloudinary";
 import mongoose from "mongoose";
 
+const cloudinary = new CloudinaryController();
 const getUserProfile = async (req, res) => {
   // We will fetch user profile either with username or userId
   // query is either username or userId
@@ -22,7 +24,8 @@ const getUserProfile = async (req, res) => {
     }
 
     if (!user) return res.status(404).json({ error: "User not found" });
-
+    // Cach dung
+    // cloudinary.uploadFile(File, folder, "png");
     res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
