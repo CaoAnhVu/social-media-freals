@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { useRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { useNavigate } from "react-router-dom";
-import usePreviewImg from "../hooks/usePreviewImg";
+import { usePreviewImg, usePreviewVideo } from "../hooks/usePreviewImg";
 import useShowToast from "../hooks/useShowToast";
 
 export default function UpdateProfilePage() {

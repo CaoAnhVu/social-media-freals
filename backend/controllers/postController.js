@@ -1,42 +1,70 @@
 import Post from "../models/postModel.js";
 import User from "../models/userModel.js";
+import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+const verifyUserOwnership = async (req, res, next) => {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+  req.user = user;
+  next();
+};
+const uploadVideoBlob = async (videoBuffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream({ resource_type: "video" }, (error, result) => {
+      if (error) return reject(error);
+      resolve(result.secure_url);
+    });
+    stream.end(videoBuffer); // Đẩy buffer lên Cloudinary qua stream
+  });
+};
 const createPost = async (req, res) => {
   try {
     const { postedBy, text } = req.body;
     let { img } = req.body;
+    let videoUrl;
 
     if (!postedBy || !text) {
-      return res.status(400).json({ error: "Postedby and text fields are required" });
+      return res.status(400).json({ error: "postedBy and text fields are required" });
     }
 
-    const user = await User.findById(postedBy);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    if (user._id.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ error: "Unauthorized to create post" });
-    }
-
+    // Kiểm tra độ dài văn bản
     const maxLength = 500;
     if (text.length > maxLength) {
       return res.status(400).json({ error: `Text must be less than ${maxLength} characters` });
     }
 
-    if (img) {
-      const uploadedResponse = await cloudinary.uploader.upload(img);
-      img = uploadedResponse.secure_url;
+    // Tải lên hình ảnh nếu có
+    if (img && typeof img === "string") {
+      try {
+        const uploadedImage = await cloudinary.uploader.upload(img);
+        img = uploadedImage.secure_url;
+      } catch (error) {
+        return res.status(500).json({ error: "Failed to upload image" });
+      }
     }
 
-    const newPost = new Post({ postedBy, text, img });
+    // Tải lên video từ buffer nếu có
+    if (req.file) {
+      try {
+        videoUrl = await uploadVideoBlob(req.file.buffer);
+      } catch (error) {
+        return res.status(500).json({ error: "Failed to upload video" });
+      }
+    }
+
+    // Tạo post mới
+    const newPost = new Post({ postedBy, text, img, video: videoUrl });
     await newPost.save();
 
     res.status(201).json(newPost);
   } catch (err) {
     res.status(500).json({ error: err.message });
-    console.log(err);
   }
 };
 
@@ -54,30 +82,44 @@ const getPost = async (req, res) => {
   }
 };
 
-const deletePost = async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-    if (!post) {
-      return res.status(404).json({ error: "Post not found" });
+const deletePost = [
+  verifyUserOwnership,
+  async (req, res) => {
+    try {
+      const post = await Post.findById(req.params.id);
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+
+      if (post.postedBy.toString() !== req.user._id.toString()) {
+        return res.status(401).json({ error: "Unauthorized to delete post" });
+      }
+
+      // Xóa ảnh và video từ Cloudinary nếu có
+      if (post.img) {
+        try {
+          const imgId = post.img.split("/").pop().split(".")[0];
+          await cloudinary.uploader.destroy(imgId);
+        } catch (error) {
+          console.error("Failed to delete image:", error);
+        }
+      }
+      if (post.video) {
+        try {
+          const videoId = post.video.split("/").pop().split(".")[0];
+          await cloudinary.uploader.destroy(videoId, { resource_type: "video" });
+        } catch (error) {
+          console.error("Failed to delete video:", error);
+        }
+      }
+
+      await Post.findByIdAndDelete(req.params.id);
+      res.status(200).json({ message: "Post deleted successfully" });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-
-    if (post.postedBy.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ error: "Unauthorized to delete post" });
-    }
-
-    if (post.img) {
-      const imgId = post.img.split("/").pop().split(".")[0];
-      await cloudinary.uploader.destroy(imgId);
-    }
-
-    await Post.findByIdAndDelete(req.params.id);
-
-    res.status(200).json({ message: "Post deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
+  },
+];
 const likeUnlikePost = async (req, res) => {
   try {
     const { id: postId } = req.params;
@@ -137,14 +179,18 @@ const replyToPost = async (req, res) => {
 const getFeedPosts = async (req, res) => {
   try {
     const userId = req.user._id;
+    const { page = 1, limit = 10 } = req.query; // Phân trang: page và limit
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     const following = user.following;
-
-    const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({ createdAt: -1 });
+    const feedPosts = await Post.find({ postedBy: { $in: following } })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit) // Bỏ qua số lượng bài viết đã hiển thị
+      .limit(limit); // Giới hạn số lượng bài viết
 
     res.status(200).json(feedPosts);
   } catch (err) {
@@ -168,4 +214,4 @@ const getUserPosts = async (req, res) => {
   }
 };
 
-export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts };
+export { verifyUserOwnership, createPost, deletePost, getPost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, upload, uploadVideoBlob };

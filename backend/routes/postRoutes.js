@@ -1,8 +1,11 @@
 import express from "express";
-import { createPost, deletePost, getFeedPosts, getPost, getUserPosts, likeUnlikePost, replyToPost } from "../controllers/postController.js";
+import { upload, uploadVideoBlob, createPost, deletePost, getFeedPosts, getPost, getUserPosts, likeUnlikePost, replyToPost } from "../controllers/postController.js";
 import protectRoute from "../middleware/protectRoute.js";
 
 const router = express.Router();
+
+// Endpoint để nhận video upload
+router.post("/uploadVideo", upload.single("video"), uploadVideoBlob);
 
 router.get("/user", protectRoute, getUserPosts);
 router.get("/feed", protectRoute, getFeedPosts);

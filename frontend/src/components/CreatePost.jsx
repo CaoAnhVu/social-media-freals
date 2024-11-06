@@ -25,7 +25,7 @@ import {
 import { useRef, useState } from "react";
 import Picker from "@emoji-mart/react";
 import { BsFillImageFill, BsEmojiSmile, BsCameraVideo } from "react-icons/bs";
-import usePreviewImg from "../hooks/usePreviewImg";
+import { usePreviewImg, usePreviewVideo } from "../hooks/usePreviewImg";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
@@ -38,8 +38,10 @@ const CreatePost = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [postText, setPostText] = useState("");
   const { handleImageChange, imgUrl, setImgUrl } = usePreviewImg();
+  const { videoUrl, setVideoUrl } = usePreviewVideo();
   const imageRef = useRef(null);
   const videoRef = useRef(null);
+  // const [videoUrl, setVideoUrl] = useState(null); // State cho video URL
   const [remainingChar, setRemainingChar] = useState(MAX_CHAR);
   const user = useRecoilValue(userAtom);
   const showToast = useShowToast();
@@ -66,12 +68,22 @@ const CreatePost = () => {
   const handleCreatePost = async () => {
     setLoading(true);
     try {
+      if (!postText && !imgUrl && !videoUrl) {
+        showToast("Error", "Please provide text, an image, or a video", "error");
+        return;
+      }
+
       const res = await fetch("/api/posts/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ postedBy: user._id, text: postText, img: imgUrl }),
+        body: JSON.stringify({
+          postedBy: user._id,
+          text: postText,
+          img: imgUrl,
+          video: videoUrl,
+        }),
       });
 
       const data = await res.json();
@@ -79,6 +91,7 @@ const CreatePost = () => {
         showToast("Error", data.error, "error");
         return;
       }
+
       showToast("Success", "Post created successfully", "success");
       if (username === user.username) {
         setPosts([data, ...posts]);
@@ -86,18 +99,20 @@ const CreatePost = () => {
       onClose();
       setPostText("");
       setImgUrl("");
+      setVideoUrl("");
     } catch (error) {
       showToast("Error", error.message, "error");
     } finally {
       setLoading(false);
     }
   };
-
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
+    if (file && file.type.startsWith("video/")) {
       const url = URL.createObjectURL(file);
-      setImgUrl(url);
+      setVideoUrl(url); // Cập nhật video URL khi người dùng chọn video
+    } else {
+      showToast("Invalid file type", "Please select a video file", "error");
     }
   };
 
@@ -163,6 +178,14 @@ const CreatePost = () => {
               <Flex position="relative" mt={2} mb={4}>
                 <Image src={imgUrl} alt="Selected preview" borderRadius="md" shadow="md" maxH="200px" objectFit="cover" />
                 <CloseButton size="sm" position="absolute" top={1} right={1} bg="red.600" color="white" onClick={() => setImgUrl("")} />
+              </Flex>
+            )}
+
+            {videoUrl && (
+              <Flex position="relative" mt={2} mb={4}>
+                <video src={videoUrl} controls style={{ borderRadius: "md", boxShadow: "md", maxHeight: "200px", objectFit: "cover" }} />
+
+                <CloseButton size="sm" position="absolute" top={1} right={1} bg="red.600" color="white" onClick={() => setVideoUrl("")} />
               </Flex>
             )}
           </ModalBody>
