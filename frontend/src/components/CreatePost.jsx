@@ -38,7 +38,7 @@ const CreatePost = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [postText, setPostText] = useState("");
   const { handleImageChange, imgUrl, setImgUrl } = usePreviewImg();
-  const { videoUrl, setVideoUrl } = usePreviewVideo();
+  const { handleVideoChange, videoUrl, setVideoUrl } = usePreviewVideo();
   const imageRef = useRef(null);
   const videoRef = useRef(null);
   // const [videoUrl, setVideoUrl] = useState(null); // State cho video URL
@@ -73,17 +73,25 @@ const CreatePost = () => {
         return;
       }
 
+      // Create FormData object
+      const formData = new FormData();
+      formData.append("postedBy", user._id);
+      formData.append("text", postText || "");
+
+      // Append the image file if it's selected
+      if (imageRef.current?.files[0]) {
+        formData.append("img", imageRef.current.files[0]);
+      }
+
+      // Append the video file if it's selected
+      if (videoRef.current?.files[0]) {
+        formData.append("video", videoRef.current.files[0]);
+      }
+
+      // Send FormData to the API
       const res = await fetch("/api/posts/create", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          postedBy: user._id,
-          text: postText,
-          img: imgUrl,
-          video: videoUrl,
-        }),
+        body: formData, // Use FormData directly as the body
       });
 
       const data = await res.json();
@@ -104,15 +112,6 @@ const CreatePost = () => {
       showToast("Error", error.message, "error");
     } finally {
       setLoading(false);
-    }
-  };
-  const handleVideoChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith("video/")) {
-      const url = URL.createObjectURL(file);
-      setVideoUrl(url); // Cập nhật video URL khi người dùng chọn video
-    } else {
-      showToast("Invalid file type", "Please select a video file", "error");
     }
   };
 

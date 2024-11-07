@@ -29,8 +29,13 @@ const usePreviewVideo = () => {
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("video/")) {
-      const url = URL.createObjectURL(file); // Sử dụng URL.createObjectURL cho video
-      setVideoUrl(url);
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        setVideoUrl(reader.result);
+      };
+
+      reader.readAsDataURL(file);
     } else {
       showToast("Invalid file type", "Please select a video file", "error");
       setVideoUrl(null);

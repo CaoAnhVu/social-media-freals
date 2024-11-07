@@ -10,18 +10,12 @@ import mongoose from "mongoose";
 const getUserProfile = async (req, res) => {
   // We will fetch user profile either with username or userId
   // query is either username or userId
-  const { query } = req.params;
+  const { username } = req.params;
 
   try {
     let user;
 
-    // query is userId
-    if (mongoose.Types.ObjectId.isValid(query)) {
-      user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
-    } else {
-      // query is username
-      user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
-    }
+    user = await User.findOne({ username: username }).select("-password").select("-updatedAt");
 
     if (!user) return res.status(404).json({ error: "User not found" });
     // Cach dung

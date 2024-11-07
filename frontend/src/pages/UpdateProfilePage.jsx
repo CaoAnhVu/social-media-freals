@@ -2,10 +2,8 @@ import { Button, Flex, FormControl, FormLabel, Heading, Input, Stack, useColorMo
 import { useRef, useState } from "react";
 import { useRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
-import { useNavigate } from "react-router-dom";
 import { usePreviewImg, usePreviewVideo } from "../hooks/usePreviewImg";
 import useShowToast from "../hooks/useShowToast";
-
 export default function UpdateProfilePage() {
   const [user, setUser] = useRecoilState(userAtom);
   const [inputs, setInputs] = useState({

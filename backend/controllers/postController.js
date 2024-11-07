@@ -23,11 +23,11 @@ const uploadVideoBlob = async (videoBuffer) => {
     stream.end(videoBuffer); // Đẩy buffer lên Cloudinary qua stream
   });
 };
+
 const createPost = async (req, res) => {
   try {
     const { postedBy, text } = req.body;
-    let { img } = req.body;
-    let videoUrl;
+    let videoUrl, imgUrl;
 
     if (!postedBy || !text) {
       return res.status(400).json({ error: "postedBy and text fields are required" });
@@ -39,27 +39,24 @@ const createPost = async (req, res) => {
       return res.status(400).json({ error: `Text must be less than ${maxLength} characters` });
     }
 
-    // Tải lên hình ảnh nếu có
-    if (img && typeof img === "string") {
-      try {
-        const uploadedImage = await cloudinary.uploader.upload(img);
-        img = uploadedImage.secure_url;
-      } catch (error) {
-        return res.status(500).json({ error: "Failed to upload image" });
-      }
+    if (req.files["img"]) {
+      const imgFile = req.files["img"][0];
+      const imgUpload = await cloudinary.uploader.upload(`data:${imgFile.mimetype};base64,${imgFile.buffer.toString("base64")}`, {
+        resource_type: "image",
+      });
+      imgUrl = imgUpload.secure_url;
     }
 
-    // Tải lên video từ buffer nếu có
-    if (req.file) {
-      try {
-        videoUrl = await uploadVideoBlob(req.file.buffer);
-      } catch (error) {
-        return res.status(500).json({ error: "Failed to upload video" });
-      }
+    if (req.files["video"]) {
+      const videoFile = req.files["video"][0];
+      const videoUpload = await cloudinary.uploader.upload(`data:${videoFile.mimetype};base64,${videoFile.buffer.toString("base64")}`, {
+        resource_type: "video",
+      });
+      videoUrl = videoUpload.secure_url;
     }
 
     // Tạo post mới
-    const newPost = new Post({ postedBy, text, img, video: videoUrl });
+    const newPost = new Post({ postedBy, text, img: imgUrl, video: videoUrl });
     await newPost.save();
 
     res.status(201).json(newPost);
