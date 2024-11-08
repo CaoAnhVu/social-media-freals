@@ -2,8 +2,10 @@ import { Button, Flex, FormControl, FormLabel, Heading, Input, Stack, useColorMo
 import { useRef, useState } from "react";
 import { useRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
-import { usePreviewImg, usePreviewVideo } from "../hooks/usePreviewImg";
+import { useNavigate } from "react-router-dom";
+import { usePreviewImg } from "../hooks/usePreviewImg";
 import useShowToast from "../hooks/useShowToast";
+
 export default function UpdateProfilePage() {
   const [user, setUser] = useRecoilState(userAtom);
   const [inputs, setInputs] = useState({
@@ -43,6 +45,8 @@ export default function UpdateProfilePage() {
       showToast("Success", "Profile updated successfully", "success");
       setUser(data);
       localStorage.setItem("user-freals", JSON.stringify(data));
+
+      navigate(-1);
     } catch (error) {
       showToast("Error", error.message || "An error occurred", "error");
     } finally {
@@ -56,16 +60,16 @@ export default function UpdateProfilePage() {
   return (
     <form onSubmit={handleSubmit}>
       <Flex align={"center"} justify={"center"} my={6}>
-        <Stack spacing={4} w={"full"} maxW={"md"} bg={useColorModeValue("white", "gray.dark")} rounded={"xl"} boxShadow={"lg"} p={6}>
+        <Stack spacing={4} w={"full"} maxW={"xl"} bg={useColorModeValue("white", "gray.dark")} rounded={"xl"} boxShadow={"lg"} p={6}>
           <Heading lineHeight={1.1} fontSize={{ base: "2xl", sm: "3xl" }}>
             User Profile Edit
           </Heading>
           <FormControl id="userName">
             <Stack direction={["column", "row"]} spacing={6}>
               <Center>
-                <Avatar size="xl" boxShadow={"md"} src={imgUrl || user.profilePic} />
+                <Avatar size="2xl" boxShadow={"md"} src={imgUrl || user.profilePic} />
               </Center>
-              <Center w="full">
+              <Center w="ml">
                 <Button w="full" onClick={() => fileRef.current.click()}>
                   Change Avatar
                 </Button>
