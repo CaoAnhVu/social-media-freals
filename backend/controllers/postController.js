@@ -26,9 +26,10 @@ const uploadVideoBlob = async (videoBuffer) => {
 
 const createPost = async (req, res) => {
   try {
-    const { postedBy, text } = req.body;
+    const { postedBy, text, location, tags } = req.body;
     let videoUrl, imgUrl;
-
+    console.log("Location Data:", location);
+    // Kiểm tra thông tin bắt buộc
     if (!postedBy || !text) {
       return res.status(400).json({ error: "postedBy and text fields are required" });
     }
@@ -39,6 +40,19 @@ const createPost = async (req, res) => {
       return res.status(400).json({ error: `Text must be less than ${maxLength} characters` });
     }
 
+    // Chuyển chuỗi location thành đối tượng
+    let parsedLocation;
+    try {
+      parsedLocation = location ? JSON.parse(location) : null; // Chỉ parse nếu location có dữ liệu
+    } catch (error) {
+      return res.status(400).json({ error: "Invalid location data" });
+    }
+
+    if (parsedLocation && !Array.isArray(parsedLocation.coordinates)) {
+      return res.status(400).json({ error: "Coordinates must be an array" });
+    }
+
+    // Xử lý ảnh
     if (req.files["img"]) {
       const imgFile = req.files["img"][0];
       const imgUpload = await cloudinary.uploader.upload(`data:${imgFile.mimetype};base64,${imgFile.buffer.toString("base64")}`, {
@@ -47,6 +61,7 @@ const createPost = async (req, res) => {
       imgUrl = imgUpload.secure_url;
     }
 
+    // Xử lý video
     if (req.files["video"]) {
       const videoFile = req.files["video"][0];
       const videoUpload = await cloudinary.uploader.upload(`data:${videoFile.mimetype};base64,${videoFile.buffer.toString("base64")}`, {
@@ -55,8 +70,32 @@ const createPost = async (req, res) => {
       videoUrl = videoUpload.secure_url;
     }
 
-    // Tạo post mới
-    const newPost = new Post({ postedBy, text, img: imgUrl, video: videoUrl });
+    // Xử lý tệp đính kèm
+    let attachmentsArray = [];
+    if (req.files?.attachments?.length) {
+      for (let i = 0; i < req.files.attachments.length; i++) {
+        const file = req.files.attachments[i];
+        const fileUpload = await cloudinary.uploader.upload(`data:${file.mimetype};base64,${file.buffer.toString("base64")}`, {
+          resource_type: "auto",
+        });
+        attachmentsArray.push({
+          fileUrl: fileUpload.secure_url,
+          fileType: file.mimetype,
+        });
+      }
+    }
+
+    // Tạo bài đăng mới
+    const newPost = new Post({
+      postedBy,
+      text,
+      img: imgUrl,
+      video: videoUrl,
+      location: parsedLocation || null,
+      tags: tags || [],
+      attachments: attachmentsArray,
+    });
+
     await newPost.save();
 
     res.status(201).json(newPost);
@@ -117,6 +156,7 @@ const deletePost = [
     }
   },
 ];
+
 const likeUnlikePost = async (req, res) => {
   try {
     const { id: postId } = req.params;

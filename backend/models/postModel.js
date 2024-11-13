@@ -17,8 +17,27 @@ const postSchema = mongoose.Schema(
     video: {
       type: String,
     },
+    location: {
+      name: { type: String, default: "" },
+      coordinates: {
+        type: [Number],
+        index: "2dsphere",
+        default: [],
+      },
+    },
+    tags: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", // ID của người được tag
+      },
+    ],
+    attachments: [
+      {
+        fileUrl: String, // URL của tệp đính kèm
+        fileType: String, // Loại tệp (ví dụ: image, pdf, ...)
+      },
+    ],
     likes: {
-      // array of user ids
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
       default: [],

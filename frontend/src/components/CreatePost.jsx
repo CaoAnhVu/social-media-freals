@@ -21,10 +21,11 @@ import {
   PopoverTrigger,
   PopoverContent,
   PopoverBody,
+  useToast,
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import Picker from "@emoji-mart/react";
-import { BsFillImageFill, BsEmojiSmile, BsCameraVideo } from "react-icons/bs";
+import { BsFillImageFill, BsEmojiSmile, BsCameraVideo, BsGeoAlt } from "react-icons/bs";
 import { usePreviewImg, usePreviewVideo } from "../hooks/usePreviewImg";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
@@ -41,7 +42,6 @@ const CreatePost = () => {
   const { handleVideoChange, videoUrl, setVideoUrl } = usePreviewVideo();
   const imageRef = useRef(null);
   const videoRef = useRef(null);
-  // const [videoUrl, setVideoUrl] = useState(null); // State cho video URL
   const [remainingChar, setRemainingChar] = useState(MAX_CHAR);
   const user = useRecoilValue(userAtom);
   const showToast = useShowToast();
@@ -49,6 +49,11 @@ const CreatePost = () => {
   const [posts, setPosts] = useRecoilState(postsAtom);
   const { username } = useParams();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const { isOpen: isLocationModalOpen, onOpen: onOpenLocationModal, onClose: onCloseLocationModal } = useDisclosure();
+  const [locationName, setLocationName] = useState("");
+  const [locationCoordinates, setLocationCoordinates] = useState({ latitude: "", longitude: "" });
+  const [location, setLocation] = useState(null);
+  const toast = useToast();
 
   const handleTextChange = (e) => {
     const inputText = e.target.value;
@@ -63,6 +68,31 @@ const CreatePost = () => {
 
   const addEmoji = (emoji) => {
     setPostText((prevText) => prevText + emoji.native);
+  };
+
+  const handleLocationSave = () => {
+    if (locationName && locationCoordinates.latitude && locationCoordinates.longitude) {
+      setLocation({
+        name: locationName,
+        coordinates: [parseFloat(locationCoordinates.latitude), parseFloat(locationCoordinates.longitude)],
+      });
+      onCloseLocationModal(); // Close the modal after saving location
+      toast({
+        title: "Location Saved.",
+        description: `Location: ${locationName}, Latitude: ${locationCoordinates.latitude}, Longitude: ${locationCoordinates.longitude}`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields for location.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const handleCreatePost = async () => {
@@ -88,6 +118,15 @@ const CreatePost = () => {
         formData.append("video", videoRef.current.files[0]);
       }
 
+      // Append location if available
+      if (location && location.name && location.coordinates) {
+        formData.append("location", JSON.stringify(location)); // Ensure it's properly serialized
+      }
+
+      for (var pair of formData.entries()) {
+        console.log(pair[0] + ", " + pair[1]);
+      }
+
       // Send FormData to the API
       const res = await fetch("/api/posts/create", {
         method: "POST",
@@ -108,6 +147,8 @@ const CreatePost = () => {
       setPostText("");
       setImgUrl("");
       setVideoUrl("");
+      setLocationName("");
+      setLocationCoordinates({ latitude: "", longitude: "" });
     } catch (error) {
       showToast("Error", error.message, "error");
     } finally {
@@ -149,6 +190,7 @@ const CreatePost = () => {
                 _focus={{ borderColor: useColorModeValue("teal.500", "teal.400") }}
                 resize="none"
                 mb={2}
+                style={{ fontFamily: "Segoe UI Emoji, Noto Color Emoji, Apple Color Emoji" }}
               />
               <Flex justify="space-between" align="center" mb={4}>
                 <Text fontSize="xs" color="gray.500">
@@ -168,6 +210,12 @@ const CreatePost = () => {
                 </Popover>
                 <BsFillImageFill style={{ cursor: "pointer" }} size={20} color={useColorModeValue("teal.500", "teal.300")} onClick={() => imageRef.current.click()} />
                 <BsCameraVideo style={{ cursor: "pointer", marginLeft: "10px" }} size={20} color={useColorModeValue("teal.500", "teal.300")} onClick={() => videoRef.current.click()} />
+                <BsGeoAlt
+                  style={{ cursor: "pointer", marginLeft: "10px" }}
+                  size={20}
+                  color="teal"
+                  onClick={onOpenLocationModal} // Open the modal when clicked
+                />
                 <Input type="file" hidden ref={imageRef} onChange={handleImageChange} accept="image/*" />
                 <Input type="file" hidden ref={videoRef} onChange={handleVideoChange} accept="video/*" />
               </Flex>
@@ -175,18 +223,40 @@ const CreatePost = () => {
 
             {imgUrl && (
               <Flex position="relative" mt={2} mb={4}>
-                <Image src={imgUrl} alt="Selected preview" borderRadius="md" shadow="md" maxH="200px" objectFit="cover" />
+                <Image src={imgUrl} alt="Selected preview" borderRadius="md" shadow="md" maxW={"100%"} objectFit="cover" />
                 <CloseButton size="sm" position="absolute" top={1} right={1} bg="red.600" color="white" onClick={() => setImgUrl("")} />
               </Flex>
             )}
 
             {videoUrl && (
               <Flex position="relative" mt={2} mb={4}>
-                <video src={videoUrl} controls style={{ borderRadius: "md", boxShadow: "md", maxHeight: "200px", objectFit: "cover" }} />
-
+                <video src={videoUrl} controls style={{ borderRadius: "8px", maxWidth: "100%" }} />
                 <CloseButton size="sm" position="absolute" top={1} right={1} bg="red.600" color="white" onClick={() => setVideoUrl("")} />
               </Flex>
             )}
+
+            {/* Location Modal */}
+            <Modal isOpen={isLocationModalOpen} onClose={onCloseLocationModal}>
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Save Location</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                  <FormControl>
+                    <Input placeholder="Enter location name" value={locationName} onChange={(e) => setLocationName(e.target.value)} mb={3} />
+                    <Flex direction="row" gap={3}>
+                      <Input placeholder="Latitude" value={locationCoordinates.latitude} onChange={(e) => setLocationCoordinates({ ...locationCoordinates, latitude: e.target.value })} />
+                      <Input placeholder="Longitude" value={locationCoordinates.longitude} onChange={(e) => setLocationCoordinates({ ...locationCoordinates, longitude: e.target.value })} />
+                    </Flex>
+                  </FormControl>
+                </ModalBody>
+                <ModalFooter>
+                  <Button colorScheme="teal" onClick={handleLocationSave}>
+                    Save Location
+                  </Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
           </ModalBody>
 
           <ModalFooter>
