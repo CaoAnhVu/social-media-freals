@@ -12,7 +12,15 @@ router.post("/uploadVideo", upload.single("video"), uploadVideoBlob);
 router.get("/user", protectRoute, getUserPosts);
 router.get("/feed", protectRoute, getFeedPosts);
 router.get("/:id", getPost);
-router.post("/create", upload.fields([{ name: "img", maxCount: 1 }, { name: "video", maxCount: 1 }, { name: "attachments" }]), protectRoute, createPost);
+router.post(
+  "/create",
+  upload.fields([
+    { name: "img", maxCount: 1 },
+    { name: "video", maxCount: 1 },
+  ]),
+  protectRoute,
+  createPost
+);
 router.delete("/:id", protectRoute, deletePost);
 router.post("/like/:id", protectRoute, likeUnlikePost);
 router.post("/reply/:id", protectRoute, replyToPost);

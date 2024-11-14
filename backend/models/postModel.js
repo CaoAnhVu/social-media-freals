@@ -25,18 +25,7 @@ const postSchema = mongoose.Schema(
         default: [],
       },
     },
-    tags: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User", // ID của người được tag
-      },
-    ],
-    attachments: [
-      {
-        fileUrl: String, // URL của tệp đính kèm
-        fileType: String, // Loại tệp (ví dụ: image, pdf, ...)
-      },
-    ],
+
     likes: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",

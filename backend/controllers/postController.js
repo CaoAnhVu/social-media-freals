@@ -26,9 +26,9 @@ const uploadVideoBlob = async (videoBuffer) => {
 
 const createPost = async (req, res) => {
   try {
-    const { postedBy, text, location, tags } = req.body;
+    const { postedBy, text, location } = req.body;
     let videoUrl, imgUrl;
-    console.log("Location Data:", location);
+
     // Kiểm tra thông tin bắt buộc
     if (!postedBy || !text) {
       return res.status(400).json({ error: "postedBy and text fields are required" });
@@ -70,21 +70,6 @@ const createPost = async (req, res) => {
       videoUrl = videoUpload.secure_url;
     }
 
-    // Xử lý tệp đính kèm
-    let attachmentsArray = [];
-    if (req.files?.attachments?.length) {
-      for (let i = 0; i < req.files.attachments.length; i++) {
-        const file = req.files.attachments[i];
-        const fileUpload = await cloudinary.uploader.upload(`data:${file.mimetype};base64,${file.buffer.toString("base64")}`, {
-          resource_type: "auto",
-        });
-        attachmentsArray.push({
-          fileUrl: fileUpload.secure_url,
-          fileType: file.mimetype,
-        });
-      }
-    }
-
     // Tạo bài đăng mới
     const newPost = new Post({
       postedBy,
@@ -92,8 +77,6 @@ const createPost = async (req, res) => {
       img: imgUrl,
       video: videoUrl,
       location: parsedLocation || null,
-      tags: tags || [],
-      attachments: attachmentsArray,
     });
 
     await newPost.save();
@@ -131,7 +114,7 @@ const deletePost = [
         return res.status(401).json({ error: "Unauthorized to delete post" });
       }
 
-      // Xóa ảnh và video từ Cloudinary nếu có
+      // Xóa ảnh từ Cloudinary
       if (post.img) {
         try {
           const imgId = post.img.split("/").pop().split(".")[0];
@@ -140,6 +123,8 @@ const deletePost = [
           console.error("Failed to delete image:", error);
         }
       }
+
+      // Xóa video từ Cloudinary
       if (post.video) {
         try {
           const videoId = post.video.split("/").pop().split(".")[0];

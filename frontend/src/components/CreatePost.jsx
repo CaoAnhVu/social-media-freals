@@ -1,4 +1,3 @@
-import { AddIcon } from "@chakra-ui/icons";
 import {
   Button,
   CloseButton,
@@ -23,6 +22,7 @@ import {
   PopoverBody,
   useToast,
 } from "@chakra-ui/react";
+import { AddIcon } from "@chakra-ui/icons";
 import { useRef, useState } from "react";
 import Picker from "@emoji-mart/react";
 import { BsFillImageFill, BsEmojiSmile, BsCameraVideo, BsGeoAlt } from "react-icons/bs";
@@ -143,6 +143,7 @@ const CreatePost = () => {
       if (username === user.username) {
         setPosts([data, ...posts]);
       }
+
       onClose();
       setPostText("");
       setImgUrl("");
@@ -169,7 +170,7 @@ const CreatePost = () => {
         size="md"
         borderRadius="full"
         shadow="lg"
-        transition="all 0.2s"
+        transition="all 0.25s"
       >
         <AddIcon />
       </Button>
@@ -213,28 +214,25 @@ const CreatePost = () => {
                 <BsGeoAlt
                   style={{ cursor: "pointer", marginLeft: "10px" }}
                   size={20}
-                  color="teal"
+                  color={useColorModeValue("teal.500", "teal.300")}
                   onClick={onOpenLocationModal} // Open the modal when clicked
                 />
                 <Input type="file" hidden ref={imageRef} onChange={handleImageChange} accept="image/*" />
                 <Input type="file" hidden ref={videoRef} onChange={handleVideoChange} accept="video/*" />
               </Flex>
             </FormControl>
-
             {imgUrl && (
               <Flex position="relative" mt={2} mb={4}>
                 <Image src={imgUrl} alt="Selected preview" borderRadius="md" shadow="md" maxW={"100%"} objectFit="cover" />
                 <CloseButton size="sm" position="absolute" top={1} right={1} bg="red.600" color="white" onClick={() => setImgUrl("")} />
               </Flex>
             )}
-
             {videoUrl && (
               <Flex position="relative" mt={2} mb={4}>
                 <video src={videoUrl} controls style={{ borderRadius: "8px", maxWidth: "100%" }} />
                 <CloseButton size="sm" position="absolute" top={1} right={1} bg="red.600" color="white" onClick={() => setVideoUrl("")} />
               </Flex>
             )}
-
             {/* Location Modal */}
             <Modal isOpen={isLocationModalOpen} onClose={onCloseLocationModal}>
               <ModalOverlay />
