@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import UserHeader from "../components/UserHeader";
 import { useParams } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
-import { Flex, Spinner } from "@chakra-ui/react";
+import { Flex, Spinner, Box } from "@chakra-ui/react";
 import Post from "../components/Post";
 import useGetUserProfile from "../hooks/useGetUserProfile";
 import { useRecoilState } from "recoil";
@@ -47,16 +47,17 @@ const UserPage = () => {
 
   return (
     <>
-      <UserHeader user={user} />
+      <Box mt={16}>
+        <UserHeader user={user} />
+        {!fetchingPosts && (!posts || posts.length === 0) && <h1>User has not posts.</h1>}
+        {fetchingPosts && (
+          <Flex justifyContent={"center"} my={12}>
+            <Spinner size={"xl"} />
+          </Flex>
+        )}
 
-      {!fetchingPosts && (!posts || posts.length === 0) && <h1>User has not posts.</h1>}
-      {fetchingPosts && (
-        <Flex justifyContent={"center"} my={12}>
-          <Spinner size={"xl"} />
-        </Flex>
-      )}
-
-      {posts && posts.map((post) => <Post key={post._id} post={post} postedBy={post.postedBy} />)}
+        {posts && posts.map((post) => <Post key={post._id} post={post} postedBy={post.postedBy} />)}
+      </Box>
     </>
   );
 };

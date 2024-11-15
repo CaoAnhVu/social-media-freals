@@ -105,11 +105,12 @@ const deletePost = [
   verifyUserOwnership,
   async (req, res) => {
     try {
+      // Lấy postId từ tham số đường dẫn
       const post = await Post.findById(req.params.id);
       if (!post) {
         return res.status(404).json({ error: "Post not found" });
       }
-
+      // Kiểm tra quyền sở hữu của người dùng đối với post
       if (post.postedBy.toString() !== req.user._id.toString()) {
         return res.status(401).json({ error: "Unauthorized to delete post" });
       }
@@ -134,6 +135,11 @@ const deletePost = [
         }
       }
 
+      // Xóa location bằng cách đặt về null
+      post.location = null;
+      await post.save();
+
+      // Xóa post khỏi cơ sở dữ liệu
       await Post.findByIdAndDelete(req.params.id);
       res.status(200).json({ message: "Post deleted successfully" });
     } catch (err) {

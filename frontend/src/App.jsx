@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import UserPage from "./pages/UserPage";
 import PostPage from "./pages/PostPage";
 import Header from "./components/Header";
+import Sidebar from "./components/Sidebar";
 import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
 import { useRecoilValue } from "recoil";
@@ -17,8 +18,9 @@ function App() {
   const { pathname } = useLocation();
   return (
     <Box position={"relative"} w="full">
-      <Container maxW={pathname === "/" ? { base: "620px", md: "900px" } : "620px"}>
+      <Container maxW={pathname === "/" ? { base: "700px", md: "900px" } : "700px"}>
         <Header />
+        <Sidebar />
         <Routes>
           <Route path="/" element={user ? <HomePage /> : <Navigate to="/auth" />} />
           <Route path="/auth" element={!user ? <AuthPage /> : <Navigate to="/" />} />

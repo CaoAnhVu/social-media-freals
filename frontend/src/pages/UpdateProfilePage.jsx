@@ -48,7 +48,7 @@ export default function UpdateProfilePage() {
 
       navigate(-1);
     } catch (error) {
-      showToast("Error", error.message || "An error occurred", "error");
+      showToast("Error", error, "error");
     } finally {
       setUpdating(false);
     }

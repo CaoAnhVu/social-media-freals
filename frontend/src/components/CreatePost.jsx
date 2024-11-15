@@ -71,7 +71,17 @@ const CreatePost = () => {
   };
 
   const handleLocationSave = () => {
-    if (locationName && locationCoordinates.latitude && locationCoordinates.longitude) {
+    if (
+      locationName &&
+      locationCoordinates.latitude &&
+      locationCoordinates.longitude &&
+      !isNaN(locationCoordinates.latitude) &&
+      !isNaN(locationCoordinates.longitude) &&
+      locationCoordinates.latitude >= -90 &&
+      locationCoordinates.latitude <= 90 &&
+      locationCoordinates.longitude >= -180 &&
+      locationCoordinates.longitude <= 180
+    ) {
       setLocation({
         name: locationName,
         coordinates: [parseFloat(locationCoordinates.latitude), parseFloat(locationCoordinates.longitude)],
