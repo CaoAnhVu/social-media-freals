@@ -20,7 +20,7 @@ const Header = () => {
       as="nav"
       position="fixed"
       top={0}
-      left={"60px"}
+      left={"70px"}
       right={0}
       zIndex={1000}
       height="60px"

@@ -43,7 +43,7 @@ export default function LoginCard() {
   };
 
   return (
-    <Flex align={"center"} justify={"center"}>
+    <Flex mt={"100px"} align={"center"} justify={"center"}>
       <Stack spacing={8} mx={"auto"} maxW={"lg"} py={6} px={6}>
         <Stack align={"center"}>
           <Heading fontSize={"4xl"}>Login to your account</Heading>
