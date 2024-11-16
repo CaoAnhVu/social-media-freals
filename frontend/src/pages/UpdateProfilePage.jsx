@@ -59,7 +59,7 @@ export default function UpdateProfilePage() {
   };
   return (
     <form onSubmit={handleSubmit}>
-      <Flex align={"center"} justify={"center"} my={6}>
+      <Flex align={"center"} justify={"center"} my={6} mt={16}>
         <Stack spacing={4} w={"full"} maxW={"xl"} bg={useColorModeValue("white", "gray.dark")} rounded={"xl"} boxShadow={"lg"} p={6}>
           <Heading lineHeight={1.1} fontSize={{ base: "2xl", sm: "3xl" }}>
             User Profile Edit

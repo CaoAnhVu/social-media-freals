@@ -23,7 +23,7 @@ const Sidebar = () => {
       top={0}
       h="100vh"
       w="80px"
-      bg={colorMode === "dark" ? "gray.800" : "gray.100"}
+      bg={colorMode === "dark" ? "gray.800" : "gray.300"}
       boxShadow="lg"
       p={4}
       display="flex"

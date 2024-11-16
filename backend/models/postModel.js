@@ -55,7 +55,7 @@ const postSchema = mongoose.Schema(
     timestamps: true,
   }
 );
-
+postSchema.index({ "location.coordinates": "2dsphere" });
 const Post = mongoose.model("Post", postSchema);
 
 export default Post;

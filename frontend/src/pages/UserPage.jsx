@@ -33,17 +33,24 @@ const UserPage = () => {
     };
 
     getPosts();
-  }, [username, showToast, setPosts]);
+  }, [username, showToast, setPosts, user]);
 
   if (!user && loading) {
     return (
-      <Flex justifyContent={"center"}>
-        <Spinner size={"xl"} />
-      </Flex>
+      <Box mt={"350px"}>
+        <Flex justifyContent={"center"}>
+          <Spinner size={"xl"} />
+        </Flex>
+      </Box>
     );
   }
 
-  if (!user && !loading) return <h1>User not found</h1>;
+  if (!user && !loading)
+    return (
+      <Box mt={"350px"} textAlign={"center"} fontSize={"2xl"} fontWeight={"bold"} color="red.400">
+        <h1>User not found!</h1>
+      </Box>
+    );
 
   return (
     <>

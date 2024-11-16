@@ -30,7 +30,7 @@ export const SettingsPage = () => {
 
   return (
     <>
-      <Box mt={16}>
+      <Box mt={20}>
         <Text mt={20} my={1} fontWeight={"bold"}>
           Freeze Your Account
         </Text>

@@ -187,10 +187,30 @@ const CreatePost = () => {
 
       <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay bg="blackAlpha.600" />
-        <ModalContent bg={useColorModeValue("white", "gray.800")} borderRadius="lg" shadow="xl" maxW="lg" w="full">
+        <ModalContent bg={useColorModeValue("white", "gray.800")} borderRadius="lg" shadow="xl" maxW="lg" w="full" maxH="80vh">
           <ModalHeader textAlign="center">Create New Post</ModalHeader>
           <ModalCloseButton />
-          <ModalBody pb={6}>
+          <ModalBody
+            pb={6}
+            overflowY="auto" // Chỉ hiển thị thanh cuộn khi cần thiết
+            sx={{
+              "::-webkit-scrollbar": {
+                width: "8px", // Chiều rộng thanh cuộn
+              },
+              "::-webkit-scrollbar-track": {
+                background: "#f1f1f1", // Màu nền của track
+                borderRadius: "10px", // Bo tròn các góc
+              },
+              "::-webkit-scrollbar-thumb": {
+                background: "#888", // Màu thanh cuộn
+                borderRadius: "10px", // Bo tròn các góc
+                border: "2px solid #f1f1f1", // Viền cho thanh cuộn
+              },
+              "::-webkit-scrollbar-thumb:hover": {
+                background: "#555", // Màu thanh cuộn khi hover
+              },
+            }}
+          >
             <FormControl isRequired>
               <Textarea
                 placeholder="What's on your mind?"
@@ -253,8 +273,28 @@ const CreatePost = () => {
                   <FormControl>
                     <Input placeholder="Enter location name" value={locationName} onChange={(e) => setLocationName(e.target.value)} mb={3} />
                     <Flex direction="row" gap={3}>
-                      <Input placeholder="Latitude" value={locationCoordinates.latitude} onChange={(e) => setLocationCoordinates({ ...locationCoordinates, latitude: e.target.value })} />
-                      <Input placeholder="Longitude" value={locationCoordinates.longitude} onChange={(e) => setLocationCoordinates({ ...locationCoordinates, longitude: e.target.value })} />
+                      {/* Swap the order of latitude and longitude */}
+
+                      <Input
+                        placeholder="Latitude"
+                        value={locationCoordinates.latitude}
+                        onChange={(e) =>
+                          setLocationCoordinates({
+                            ...locationCoordinates,
+                            latitude: e.target.value,
+                          })
+                        }
+                      />
+                      <Input
+                        placeholder="Longitude"
+                        value={locationCoordinates.longitude}
+                        onChange={(e) =>
+                          setLocationCoordinates({
+                            ...locationCoordinates,
+                            longitude: e.target.value,
+                          })
+                        }
+                      />
                     </Flex>
                   </FormControl>
                 </ModalBody>

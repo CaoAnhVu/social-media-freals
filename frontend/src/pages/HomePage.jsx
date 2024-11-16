@@ -4,33 +4,52 @@ import useShowToast from "../hooks/useShowToast";
 import Post from "../components/Post";
 import { useRecoilState } from "recoil";
 import postsAtom from "../atoms/postsAtom";
+import userAtom from "../atoms/userAtom";
 import SuggestedUsers from "../components/SuggestedUsers";
 
 const HomePage = () => {
   const [posts, setPosts] = useRecoilState(postsAtom);
   const [loading, setLoading] = useState(true);
   const showToast = useShowToast();
+  const [user] = useRecoilState(userAtom);
+
   useEffect(() => {
     const getFeedPosts = async () => {
+      if (!user || !user.userId) {
+        setLoading(false); // Ngừng trạng thái loading nếu không có user
+        return;
+      }
+
       setLoading(true);
       setPosts([]);
       try {
         const res = await fetch("/api/posts/feed");
         const data = await res.json();
+
         if (data.error) {
           showToast("Error", data.error, "error");
           return;
         }
-        console.log(data);
-        setPosts(data);
+
+        // Ensure coordinates are in the correct format [longitude, latitude]
+        const updatedPosts = data.map((post) => {
+          if (post.location && post.location.coordinates) {
+            // Swap the coordinates if they are in [latitude, longitude] format
+            post.location.coordinates = [post.location.coordinates[1], post.location.coordinates[0]];
+          }
+          return post;
+        });
+
+        setPosts(updatedPosts);
       } catch (error) {
         showToast("Error", error.message, "error");
       } finally {
         setLoading(false);
       }
     };
+
     getFeedPosts();
-  }, [showToast, setPosts]);
+  }, [user, showToast, setPosts]);
 
   return (
     <Flex gap="10" alignItems={"flex-start"}>

@@ -2,7 +2,7 @@ import { Avatar } from "@chakra-ui/avatar";
 import { Box, Flex, Link, Text, VStack } from "@chakra-ui/layout";
 import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/menu";
 import { Portal } from "@chakra-ui/portal";
-import { Button, useToast } from "@chakra-ui/react";
+import { Button, useToast, useColorMode } from "@chakra-ui/react";
 import { BsInstagram } from "react-icons/bs";
 import { CgMoreO } from "react-icons/cg";
 import { useRecoilValue } from "recoil";
@@ -20,6 +20,7 @@ const UserHeader = ({ user }) => {
 
   const showToast = useShowToast();
 
+  const { colorMode } = useColorMode();
   const copyURL = async () => {
     try {
       const currentURL = window.location.href;
@@ -51,7 +52,7 @@ const UserHeader = ({ user }) => {
           </Text>
           <Flex gap={2} alignItems={"center"}>
             <Text fontSize={"sm"}>{user.username}</Text>
-            <Text fontSize={"xs"} bg={"gray.dark"} color={"gray.light"} p={1} borderRadius={"full"}>
+            <Text fontSize={"xs"} bg={colorMode === "dark" ? "gray.800" : "gray.300"} p={1} borderRadius={"full"}>
               freals.net
             </Text>
           </Flex>
@@ -108,8 +109,8 @@ const UserHeader = ({ user }) => {
                 <CgMoreO size={24} cursor={"pointer"} />
               </MenuButton>
               <Portal>
-                <MenuList bg={"gray.dark"}>
-                  <MenuItem bg={"gray.dark"} onClick={copyURL}>
+                <MenuList bg={colorMode === "dark" ? "gray.800" : "gray.300"}>
+                  <MenuItem bg={colorMode === "dark" ? "gray.800" : "gray.300"} onClick={copyURL}>
                     Copy link
                   </MenuItem>
                 </MenuList>
@@ -120,10 +121,10 @@ const UserHeader = ({ user }) => {
       </Flex>
 
       <Flex w={"full"}>
-        <Flex flex={1} borderBottom={"1.5px solid white"} justifyContent={"center"} pb="3" cursor={"pointer"}>
+        <Flex flex={1} borderBottom={"3px solid white"} justifyContent={"center"} pb="3" cursor={"pointer"}>
           <Text fontWeight={"bold"}> Freals</Text>
         </Flex>
-        <Flex flex={1} borderBottom={"1px solid gray"} justifyContent={"center"} color={"gray.light"} pb="3" cursor={"pointer"}>
+        <Flex flex={1} borderBottom={"3px solid #5e6261"} justifyContent={"center"} color={"gray.light"} pb="3" cursor={"pointer"}>
           <Text fontWeight={"bold"}> Replies</Text>
         </Flex>
       </Flex>
