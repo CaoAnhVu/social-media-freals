@@ -195,19 +195,19 @@ const CreatePost = () => {
             overflowY="auto" // Chỉ hiển thị thanh cuộn khi cần thiết
             sx={{
               "::-webkit-scrollbar": {
-                width: "8px", // Chiều rộng thanh cuộn
+                width: "8px",
               },
               "::-webkit-scrollbar-track": {
-                background: "#f1f1f1", // Màu nền của track
-                borderRadius: "10px", // Bo tròn các góc
+                background: useColorModeValue("#f1f1f1", "#2D3748"), // Màu nền track
+                borderRadius: "10px",
               },
               "::-webkit-scrollbar-thumb": {
-                background: "#888", // Màu thanh cuộn
-                borderRadius: "10px", // Bo tròn các góc
-                border: "2px solid #f1f1f1", // Viền cho thanh cuộn
+                background: useColorModeValue("#888", "#718096"), // Màu thanh cuộn
+                borderRadius: "10px",
+                border: useColorModeValue("2px solid #f1f1f1", "2px solid #2D3748"), // Viền
               },
               "::-webkit-scrollbar-thumb:hover": {
-                background: "#555", // Màu thanh cuộn khi hover
+                background: useColorModeValue("#555", "#4A5568"), // Màu thanh cuộn khi hover
               },
             }}
           >

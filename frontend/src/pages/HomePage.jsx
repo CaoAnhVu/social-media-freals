@@ -16,7 +16,7 @@ const HomePage = () => {
   useEffect(() => {
     const getFeedPosts = async () => {
       if (!user || !user.userId) {
-        setLoading(false); // Ngừng trạng thái loading nếu không có user
+        setLoading(false);
         return;
       }
 

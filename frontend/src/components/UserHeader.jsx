@@ -85,7 +85,9 @@ const UserHeader = ({ user }) => {
 
       {currentUser?._id === user._id && (
         <Link as={RouterLink} to="/update">
-          <Button size={"sm"}>Update Profile</Button>
+          <Button bg={colorMode === "dark" ? "gray.800" : "gray.300"} size={"sm"}>
+            Update Profile
+          </Button>
         </Link>
       )}
       {currentUser?._id !== user._id && (

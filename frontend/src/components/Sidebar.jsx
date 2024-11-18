@@ -24,7 +24,7 @@ const Sidebar = () => {
       h="100vh"
       w="80px"
       bg={colorMode === "dark" ? "gray.800" : "gray.300"}
-      boxShadow="lg"
+      boxShadow="2xl"
       p={4}
       display="flex"
       flexDir="column"
@@ -108,22 +108,12 @@ const Sidebar = () => {
             </Flex>
           </Link>
           <Flex
-            as="button"
             alignItems="center"
-            onClick={logout} // Gán sự kiện onClick cho toàn bộ Flex
-            _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }} // Hiệu ứng hover
+            _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }}
+            onClick={logout} // Gán sự kiện cho cả Flex
           >
             <IconButton icon={<FiLogOut />} aria-label="Logout" size="lg" />
-            <Text
-              ml={4}
-              fontSize="lg"
-              whiteSpace="nowrap"
-              overflow="hidden"
-              color={colorMode === "dark" ? "white" : "black"}
-              opacity={0}
-              transition="opacity 0.3s ease"
-              _groupHover={{ opacity: 1 }} // Hiển thị chữ khi hover sidebar
-            >
+            <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} opacity={0} transition="opacity 0.3s ease" _groupHover={{ opacity: 1 }}>
               Logout
             </Text>
           </Flex>
@@ -136,14 +126,7 @@ const Sidebar = () => {
         >
           <Flex alignItems="center">
             <IconButton icon={<CiLogin />} aria-label="Login" size="lg" />
-            <Text
-              ml={4}
-              fontSize="lg"
-              whiteSpace="nowrap"
-              overflow="hidden"
-              color={colorMode === "dark" ? "white" : "black"}
-              _hover={{ fontWeight: "bold", color: "white" }} // Hiển thị hiệu ứng khi hover vào chữ
-            >
+            <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} _hover={{ fontWeight: "bold", color: "white" }}>
               Login
             </Text>
           </Flex>
