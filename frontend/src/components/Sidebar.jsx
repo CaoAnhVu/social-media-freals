@@ -6,14 +6,16 @@ import { MdOutlineSettings } from "react-icons/md";
 import { FiLogOut } from "react-icons/fi";
 import { CiLogin } from "react-icons/ci";
 import { Link as RouterLink } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
 import useLogout from "../hooks/useLogout";
+import authScreenAtom from "../atoms/authAtom";
 
 const Sidebar = () => {
   const { colorMode } = useColorMode();
   const user = useRecoilValue(userAtom);
   const logout = useLogout();
+  const setAuthScreen = useSetRecoilState(authScreenAtom);
 
   return (
     <Box
@@ -110,7 +112,7 @@ const Sidebar = () => {
           <Flex
             alignItems="center"
             _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }}
-            onClick={logout} // Gán sự kiện cho cả Flex
+            onClick={logout} // Gán sự kiện logout cho Flex
           >
             <IconButton icon={<FiLogOut />} aria-label="Logout" size="lg" />
             <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} opacity={0} transition="opacity 0.3s ease" _groupHover={{ opacity: 1 }}>
@@ -119,18 +121,36 @@ const Sidebar = () => {
           </Flex>
         </>
       ) : (
-        <Link
-          as={RouterLink}
-          to="/auth"
-          _hover={{ textDecoration: "none" }} // Xóa gạch chân khi hover
-        >
-          <Flex alignItems="center">
-            <IconButton icon={<CiLogin />} aria-label="Login" size="lg" />
-            <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} _hover={{ fontWeight: "bold", color: "white" }}>
-              Login
-            </Text>
-          </Flex>
-        </Link>
+        <>
+          <Link
+            as={RouterLink}
+            to={"/auth"}
+            onClick={() => setAuthScreen("login")}
+            _hover={{ textDecoration: "none" }} // Xóa gạch chân khi hover
+          >
+            <Flex alignItems="center">
+              <IconButton icon={<CiLogin />} aria-label="Login" size="lg" />
+              <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} _hover={{ fontWeight: "bold", color: "white" }}>
+                Login
+              </Text>
+            </Flex>
+          </Link>
+          <Link
+            as={RouterLink}
+            to={"/auth"}
+            onClick={() => setAuthScreen("signup")}
+            _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }}
+            display="flex"
+            alignItems="center"
+          >
+            <Flex alignItems="center">
+              <IconButton icon={<CiLogin />} aria-label="Sign Up" size="lg" />
+              <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} opacity={0} transition="opacity 0.3s ease" _groupHover={{ opacity: 1 }}>
+                Sign Up
+              </Text>
+            </Flex>
+          </Link>
+        </>
       )}
     </Box>
   );

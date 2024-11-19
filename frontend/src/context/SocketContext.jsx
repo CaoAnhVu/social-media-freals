@@ -15,10 +15,10 @@ export const SocketContextProvider = ({ children }) => {
   const user = useRecoilValue(userAtom);
 
   useEffect(() => {
-    if (!user?._id) return; // Không tạo kết nối nếu không có user
-
     const socket = io("/", {
-      query: { userId: user._id },
+      query: {
+        userId: user?._id,
+      },
     });
 
     setSocket(socket);
@@ -26,14 +26,7 @@ export const SocketContextProvider = ({ children }) => {
     socket.on("getOnlineUsers", (users) => {
       setOnlineUsers(users);
     });
-
-    // Cleanup khi component unmount hoặc user thay đổi
-    return () => {
-      if (socket) {
-        socket.off("getOnlineUsers"); // Gỡ bỏ sự kiện
-        socket.close();
-      }
-    };
+    return () => socket && socket.close();
   }, [user?._id]);
 
   return <SocketContext.Provider value={{ socket, onlineUsers }}>{children}</SocketContext.Provider>;

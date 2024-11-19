@@ -18,7 +18,7 @@ const Post = ({ post, postedBy }) => {
   const [posts, setPosts] = useRecoilState(postsAtom);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  seEffect(() => {
     const getUser = async () => {
       try {
         const res = await fetch("/api/users/profile/" + postedBy);
