@@ -21,24 +21,29 @@ const HomePage = () => {
       }
 
       setLoading(true);
-      setPosts([]);
+      setPosts([]); // Clear posts before fetching new ones
+
       try {
         const res = await fetch("/api/posts/feed");
+        if (!res.ok) {
+          throw new Error("Failed to fetch posts");
+        }
         const data = await res.json();
 
         if (data.error) {
           showToast("Error", data.error, "error");
+          setLoading(false);
           return;
         }
 
-        // Ensure coordinates are in the correct format [longitude, latitude]
-        const updatedPosts = data.map((post) => {
-          if (post.location && post.location.coordinates) {
-            // Swap the coordinates if they are in [latitude, longitude] format
-            post.location.coordinates = [post.location.coordinates[1], post.location.coordinates[0]];
-          }
-          return post;
-        });
+        const updatedPosts = Array.isArray(data)
+          ? data.map((post) => {
+              if (post.location && post.location.coordinates) {
+                post.location.coordinates = [post.location.coordinates[1], post.location.coordinates[0]];
+              }
+              return post;
+            })
+          : [];
 
         setPosts(updatedPosts);
       } catch (error) {
@@ -53,19 +58,24 @@ const HomePage = () => {
 
   return (
     <Flex mt={70} gap="10" alignItems={"flex-start"}>
-      <Box flex={70}>
-        {!loading && posts.length === 0 && <h1>Follow some users to see the feed</h1>}
-
+      <Box flex={80}>
         {loading && (
           <Flex justify="center">
             <Spinner size="xl" />
           </Flex>
         )}
 
-        {posts.map((post) => (
-          <Post key={post._id} post={post} postedBy={post.postedBy} />
-        ))}
+        {!loading && posts.length === 0 && <h1>Follow some users to see the feed</h1>}
+
+        {!loading &&
+          Array.isArray(posts) &&
+          posts.map((post) => (
+            <Box key={post._id} border="1px solid rgba(128, 128, 128, 0.5)" bg="#181818" borderRadius="20px" p="4" mb="4">
+              <Post post={post} postedBy={post.postedBy} />
+            </Box>
+          ))}
       </Box>
+
       <Box
         flex={30}
         display={{

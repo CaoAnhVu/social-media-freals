@@ -17,23 +17,31 @@ const Post = ({ post, postedBy }) => {
   const currentUser = useRecoilValue(userAtom);
   const [posts, setPosts] = useRecoilState(postsAtom);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  seEffect(() => {
+  // Kiểm tra và lấy location nếu có
+  const location = post.location && post.location.name ? post.location.name : null;
+
+  useEffect(() => {
     const getUser = async () => {
       try {
-        const res = await fetch("/api/users/profile/" + postedBy);
+        setLoading(true);
+        const res = await fetch(`/api/users/profile/${post.postedBy.username}`);
         const data = await res.json();
         if (data.error) {
           showToast("Error", data.error, "error");
+          setError(data.error);
           return;
         }
         setUser(data);
       } catch (error) {
         showToast("Error", error.message, "error");
-        setUser(null);
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
-
     getUser();
   }, [postedBy, showToast]);
 
@@ -41,13 +49,12 @@ const Post = ({ post, postedBy }) => {
     try {
       e.preventDefault();
       if (!window.confirm("Are you sure you want to delete this post?")) return;
-
       const res = await fetch(`/api/posts/${post._id}`, {
         method: "DELETE",
       });
       const data = await res.json();
-      if (data.error) {
-        showToast("Error", data.error, "error");
+      if (!res.ok) {
+        showToast("Error", data.message || "An error occurred", "error");
         return;
       }
       showToast("Success", "Post deleted", "success");
@@ -58,6 +65,7 @@ const Post = ({ post, postedBy }) => {
   };
 
   if (!user) return null;
+
   return (
     <Link to={`/${user.username}/post/${post._id}`}>
       <Flex gap={3} mb={4} py={5}>
@@ -74,11 +82,20 @@ const Post = ({ post, postedBy }) => {
           <Box w="1px" h={"full"} bg="gray.light" my={2}></Box>
           <Box position={"relative"} w={"full"}>
             {post.replies.length === 0 && <Text textAlign={"center"}>🥱</Text>}
-            {post.replies[0] && <Avatar size="xs" name="John doe" src={post.replies[0].userProfilePic} position={"absolute"} top={"0px"} left="15px" padding={"2px"} />}
-
-            {post.replies[1] && <Avatar size="xs" name="John doe" src={post.replies[1].userProfilePic} position={"absolute"} bottom={"0px"} right="-5px" padding={"2px"} />}
-
-            {post.replies[2] && <Avatar size="xs" name="John doe" src={post.replies[2].userProfilePic} position={"absolute"} bottom={"0px"} left="4px" padding={"2px"} />}
+            {post.replies.slice(0, 3).map((reply, index) => (
+              <Avatar
+                key={index}
+                size="xs"
+                name={reply.userName || "John Doe"}
+                src={reply.userProfilePic}
+                position={"absolute"}
+                top={index === 0 ? "0px" : index === 1 ? "auto" : "auto"}
+                bottom={index === 1 ? "0px" : index === 2 ? "0px" : "auto"}
+                left={index === 2 ? "4px" : "auto"}
+                right={index === 1 ? "-5px" : "auto"}
+                padding={"2px"}
+              />
+            ))}
           </Box>
         </Flex>
         <Flex flex={1} flexDirection={"column"} gap={2}>
@@ -100,18 +117,34 @@ const Post = ({ post, postedBy }) => {
               <Text fontSize={"xs"} width={36} textAlign={"right"} color={"gray.light"}>
                 {formatDistanceToNow(new Date(post.createdAt))} ago
               </Text>
-
-              {currentUser?._id === user._id && <DeleteIcon size={20} onClick={handleDeletePost} />}
+              {currentUser && currentUser._id === user._id && <DeleteIcon size={20} onClick={handleDeletePost} />}
             </Flex>
           </Flex>
 
           <Text fontSize={"sm"}>{post.text}</Text>
+
+          {/* Hiển thị hình ảnh nếu có */}
           {post.img && (
             <Box borderRadius={6} overflow={"hidden"} border={"1px solid"} borderColor={"gray.light"}>
               <Image src={post.img} w={"full"} />
             </Box>
           )}
 
+          {/* Hiển thị video nếu có */}
+          {post.video && (
+            <Box borderRadius={6} overflow={"hidden"} border={"1px solid"} borderColor={"gray.light"}>
+              <video width="100%" controls>
+                <source src={post.video} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </Box>
+          )}
+          {/* Hiển thị vị trí nếu có */}
+          {location && (
+            <Text fontSize="sm" color="gray.light" mt={2}>
+              <strong>Location:</strong> {location}
+            </Text>
+          )}
           <Flex gap={3} my={1}>
             <Actions post={post} />
           </Flex>

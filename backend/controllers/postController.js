@@ -110,37 +110,45 @@ const deletePost = [
       if (!post) {
         return res.status(404).json({ error: "Post not found" });
       }
+
       // Kiểm tra quyền sở hữu của người dùng đối với post
       if (post.postedBy.toString() !== req.user._id.toString()) {
         return res.status(401).json({ error: "Unauthorized to delete post" });
       }
 
-      // Xóa ảnh từ Cloudinary
+      // Xóa các replies (hoặc comments) nếu có
+      if (post.replies && post.replies.length > 0) {
+        // Có thể xử lý thêm nếu cần, ví dụ: Xóa hoặc lưu các phản hồi vào một nơi khác
+        post.replies = []; // Làm sạch mảng replies
+      }
+
+      // Xóa ảnh từ Cloudinary (nếu có)
       if (post.img) {
+        const imgId = post.img.split("/").pop().split(".")[0];
         try {
-          const imgId = post.img.split("/").pop().split(".")[0];
+          // Kiểm tra xem ảnh có tồn tại trên Cloudinary không
           await cloudinary.uploader.destroy(imgId);
         } catch (error) {
           console.error("Failed to delete image:", error);
+          return res.status(500).json({ error: "Failed to delete image from Cloudinary" });
         }
       }
 
-      // Xóa video từ Cloudinary
+      // Xóa video từ Cloudinary (nếu có)
       if (post.video) {
+        const videoId = post.video.split("/").pop().split(".")[0];
         try {
-          const videoId = post.video.split("/").pop().split(".")[0];
+          // Kiểm tra xem video có tồn tại trên Cloudinary không
           await cloudinary.uploader.destroy(videoId, { resource_type: "video" });
         } catch (error) {
           console.error("Failed to delete video:", error);
+          return res.status(500).json({ error: "Failed to delete video from Cloudinary" });
         }
       }
 
-      // Xóa location bằng cách đặt về null
-      post.location = null;
-      await post.save();
-
-      // Xóa post khỏi cơ sở dữ liệu
+      // Xóa bài đăng khỏi cơ sở dữ liệu
       await Post.findByIdAndDelete(req.params.id);
+
       res.status(200).json({ message: "Post deleted successfully" });
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -228,17 +236,27 @@ const getFeedPosts = async (req, res) => {
 
 const getUserPosts = async (req, res) => {
   const { username } = req.params;
+  console.log("Username Param:", username); // Log tham số username từ URL
+
   try {
     const user = await User.findOne({ username });
+    console.log("User Found:", user); // Log người dùng tìm được
+
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      console.log("User not found with username:", username); // Log khi không tìm thấy người dùng
+      return res.status(404).json({ error: `User '${username}' not found` });
     }
 
-    const posts = await Post.find({ postedBy: user._id }).sort({ createdAt: -1 });
+    const posts = await Post.find({ postedBy: user._id })
+      .populate("postedBy", "username profilePic") // Thêm thông tin người dùng vào bài viết
+      .sort({ createdAt: -1 });
+
+    console.log("Posts Found:", posts); // Log danh sách bài viết tìm được
 
     res.status(200).json(posts);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.log("Error in getUserPosts:", error.message); // Log lỗi
+    res.status(500).json({ error: "Server error. Unable to fetch user posts." });
   }
 };
 

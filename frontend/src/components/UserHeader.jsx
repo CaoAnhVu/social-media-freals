@@ -9,16 +9,11 @@ import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { Link as RouterLink } from "react-router-dom";
 import useFollowUnfollow from "../hooks/useFollowUnfollow";
-import useShowToast from "../hooks/useShowToast";
 
 const UserHeader = ({ user }) => {
   const toast = useToast();
-
   const currentUser = useRecoilValue(userAtom); // logged in user
-
   const { handleFollowUnfollow, following, updating } = useFollowUnfollow(user);
-
-  const showToast = useShowToast();
 
   const { colorMode } = useColorMode();
   const copyURL = async () => {
