@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import UserHeader from "../components/UserHeader";
 import { useParams, useNavigate } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
-import { Flex, Spinner, Box, IconButton } from "@chakra-ui/react";
+import { Flex, Spinner, Box, IconButton, useColorMode } from "@chakra-ui/react";
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import Post from "../components/Post";
 import useGetUserProfile from "../hooks/useGetUserProfile";
@@ -12,6 +12,7 @@ import postsAtom from "../atoms/postsAtom";
 const UserPage = () => {
   const { user, loading: userLoading } = useGetUserProfile(); // Adjusted to fetch user
   const { username } = useParams();
+  const { colorMode } = useColorMode();
   const showToast = useShowToast();
   const navigate = useNavigate();
   const [posts, setPosts] = useRecoilState(postsAtom);
@@ -68,13 +69,22 @@ const UserPage = () => {
           left="10px"
           size="sm"
           onClick={() => navigate(-1)} // Điều hướng quay lại trang trước
-          color="white"
+          color={colorMode === "dark" ? "white" : "black"}
           _hover={{ bg: "gray.600" }}
           _active={{ bg: "gray.500" }}
           isRound
         />
 
-        <Box bg="#181818" w={{ base: "640px", md: "900px", lg: "640px" }} mx="auto" border="1px solid rgba(128, 128, 128, 0.5)" borderRadius="20px" p="4" mb="4" mt={"120px"}>
+        <Box
+          bg={colorMode === "dark" ? "#181818" : "white"}
+          w={{ base: "640px", md: "900px", lg: "640px" }}
+          mx="auto"
+          border="1px solid rgba(128, 128, 128, 0.5)"
+          borderRadius="20px"
+          p="4"
+          mb="4"
+          mt={"120px"}
+        >
           <UserHeader user={user} />
           {/* If posts are still loading or empty */}
           {fetchingPosts && (

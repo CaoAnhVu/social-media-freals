@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Divider, Flex, Image, Spinner, Text, IconButton } from "@chakra-ui/react";
+import { Avatar, Box, Button, Divider, Flex, Image, Spinner, Text, IconButton, useColorMode } from "@chakra-ui/react";
 import Actions from "../components/Actions";
 import { useEffect } from "react";
 import Comment from "../components/Comment";
@@ -14,6 +14,7 @@ import postsAtom from "../atoms/postsAtom";
 const PostPage = () => {
   const { user, loading } = useGetUserProfile();
   const [posts, setPosts] = useRecoilState(postsAtom);
+  const { colorMode } = useColorMode();
   const showToast = useShowToast();
   const { pid } = useParams();
   const currentUser = useRecoilValue(userAtom);
@@ -23,22 +24,34 @@ const PostPage = () => {
   const location = currentPost?.location && currentPost.location.name ? currentPost.location.name : null;
 
   useEffect(() => {
-    const getPost = async () => {
-      setPosts([]);
+    const fetchUserAndPosts = async () => {
       try {
-        const res = await fetch(`/api/posts/${pid}`);
-        const data = await res.json();
-        if (data.error) {
-          showToast("Error", data.error, "error");
+        // Fetch user
+        const userRes = await fetch(`/api/users/${pid}`);
+        const userData = await userRes.json();
+        if (userData.error) {
+          showToast("Error", userData.error, "error");
+          navigate("/"); // Điều hướng đến trang khác nếu không tìm thấy user
           return;
         }
-        setPosts([data]);
-      } catch (error) {
-        showToast("Error", error.message, "error");
+
+        // Fetch posts
+        const postRes = await fetch(`/api/posts/${pid}`);
+        const postData = await postRes.json();
+        if (postData.error) {
+          showToast("Error", postData.error, "error");
+          navigate("/"); // Điều hướng đến trang khác nếu không tìm thấy bài viết
+          return;
+        }
+
+        setPosts([postData]);
+      } catch (err) {
+        showToast("Error", err.message, "error");
       }
     };
-    getPost();
-  }, [showToast, pid, setPosts]);
+
+    fetchUserAndPosts();
+  }, [pid, showToast, navigate, setPosts]);
 
   const handleDeletePost = async () => {
     try {
@@ -81,13 +94,22 @@ const PostPage = () => {
         left="10px"
         size="sm"
         onClick={() => navigate(-1)}
-        color="white"
+        color={colorMode === "dark" ? "white" : "black"}
         _hover={{ bg: "gray.600" }}
         _active={{ bg: "gray.500" }}
         isRound
       />
 
-      <Box bg="#181818" w={{ base: "640px", md: "900px", lg: "640px" }} mx="auto" border="1px solid rgba(128, 128, 128, 0.5)" borderRadius="20px" p="4" mb="4" mt={"120px"}>
+      <Box
+        bg={colorMode === "dark" ? "#181818" : "gray.300"}
+        w={{ base: "640px", md: "900px", lg: "640px" }}
+        mx="auto"
+        border="1px solid rgba(128, 128, 128, 0.5)"
+        borderRadius="20px"
+        p="8"
+        mb="6"
+        mt={"120px"}
+      >
         <Flex>
           <Flex w={"full"} alignItems={"center"} gap={3}>
             <Avatar src={user.profilePic} size={"md"} name="profilePic" />
@@ -124,7 +146,7 @@ const PostPage = () => {
           </Box>
         )}
         {location && (
-          <Text fontSize="sm" color="gray.light" mt={2}>
+          <Text fontSize="sm" color={colorMode === "dark" ? "white" : "black"} mt={2}>
             <strong>Location:</strong> {location}
           </Text>
         )}
@@ -150,5 +172,4 @@ const PostPage = () => {
     </Box>
   );
 };
-// để đây mai tôi code tiếp :)) hnay mới mua màn hình
 export default PostPage;

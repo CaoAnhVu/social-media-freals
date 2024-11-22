@@ -51,7 +51,7 @@ export default function SignupCard() {
             to enjoy all our cool <Link color={"blue.400"}>features</Link> ✌️
           </Text>
         </Stack>
-        <Box rounded={"lg"} bg={useColorModeValue("white", "gray.dark")} boxShadow={"lg"} p={8}>
+        <Box rounded={"lg"} bg={useColorModeValue("white", "#181818")} boxShadow={"lg"} p={8}>
           <Stack spacing={4}>
             <HStack>
               <Box>

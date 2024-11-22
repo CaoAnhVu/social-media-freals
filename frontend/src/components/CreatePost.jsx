@@ -187,7 +187,7 @@ const CreatePost = () => {
 
       <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay bg="blackAlpha.600" />
-        <ModalContent bg={useColorModeValue("white", "gray.800")} borderRadius="lg" shadow="xl" maxW="lg" w="full" maxH="80vh">
+        <ModalContent bg={useColorModeValue("white", "#181818")} borderRadius="lg" shadow="xl" maxW="lg" w="full" maxH="80vh">
           <ModalHeader textAlign="center">Create New Post</ModalHeader>
           <ModalCloseButton />
           <ModalBody
@@ -198,16 +198,16 @@ const CreatePost = () => {
                 width: "8px",
               },
               "::-webkit-scrollbar-track": {
-                background: useColorModeValue("#f1f1f1", "#2D3748"), // Màu nền track
+                background: useColorModeValue("#f1f1f1", "#2D3748"),
                 borderRadius: "10px",
               },
               "::-webkit-scrollbar-thumb": {
-                background: useColorModeValue("#888", "#718096"), // Màu thanh cuộn
+                background: useColorModeValue("#888", "#718096"),
                 borderRadius: "10px",
-                border: useColorModeValue("2px solid #f1f1f1", "2px solid #2D3748"), // Viền
+                border: useColorModeValue("2px solid #f1f1f1", "2px solid #2D3748"),
               },
               "::-webkit-scrollbar-thumb:hover": {
-                background: useColorModeValue("#555", "#4A5568"), // Màu thanh cuộn khi hover
+                background: useColorModeValue("#555", "#4A5568"),
               },
             }}
           >

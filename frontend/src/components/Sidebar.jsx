@@ -25,8 +25,8 @@ const Sidebar = () => {
       top={0}
       h="100vh"
       w="80px"
-      bg={colorMode === "dark" ? "gray.800" : "gray.300"}
-      boxShadow="2xl"
+      bg={colorMode === "dark" ? "#181818" : "white"}
+      boxShadow="xl"
       p={4}
       display="flex"
       flexDir="column"

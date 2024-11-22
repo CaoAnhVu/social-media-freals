@@ -12,7 +12,7 @@ const Header = () => {
       right={0}
       zIndex={1000}
       height="60px"
-      bg={colorMode === "dark" ? "gray.800" : "gray.300"}
+      bg={colorMode === "dark" ? "#181818" : "white"}
       display="flex"
       justifyContent="center"
       alignItems="center"

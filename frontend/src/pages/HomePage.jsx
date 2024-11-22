@@ -1,4 +1,4 @@
-import { Box, Flex, Spinner } from "@chakra-ui/react";
+import { Box, Flex, Spinner, useColorMode } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
 import Post from "../components/Post";
@@ -10,13 +10,17 @@ import SuggestedUsers from "../components/SuggestedUsers";
 const HomePage = () => {
   const [posts, setPosts] = useRecoilState(postsAtom);
   const [loading, setLoading] = useState(true);
+  const { colorMode } = useColorMode();
   const showToast = useShowToast();
   const [user] = useRecoilState(userAtom);
 
   useEffect(() => {
     const getFeedPosts = async () => {
       if (!user || !user.userId) {
+        // Nếu không có user, điều hướng về trang Login
+        showToast("Error", "User not logged in or invalid user data", "error");
         setLoading(false);
+        navigate("/login"); // Chuyển hướng tới trang đăng nhập
         return;
       }
 
@@ -38,7 +42,7 @@ const HomePage = () => {
 
         const updatedPosts = Array.isArray(data)
           ? data.map((post) => {
-              if (post.location && post.location.coordinates) {
+              if (post.location?.coordinates?.length === 2) {
                 post.location.coordinates = [post.location.coordinates[1], post.location.coordinates[0]];
               }
               return post;
@@ -54,7 +58,7 @@ const HomePage = () => {
     };
 
     getFeedPosts();
-  }, [user, showToast, setPosts]);
+  }, [user, showToast, setPosts, navigate]);
 
   return (
     <Flex mt={70} gap="10" alignItems={"flex-start"}>
@@ -65,12 +69,14 @@ const HomePage = () => {
           </Flex>
         )}
 
-        {!loading && posts.length === 0 && <h1>Follow some users to see the feed</h1>}
+        {!loading && posts.length === 0 && (
+          <h1>{user?.following?.length === 0 ? "You are not following anyone. Start following users to see their posts!" : "No posts available in your feed. Check back later!"}</h1>
+        )}
 
         {!loading &&
           Array.isArray(posts) &&
           posts.map((post) => (
-            <Box key={post._id} border="1px solid rgba(128, 128, 128, 0.5)" bg="#181818" borderRadius="20px" p="4" mb="4">
+            <Box key={post._id} border="1px solid rgba(128, 128, 128, 0.5)" bg={colorMode === "dark" ? "#181818" : "white"} borderRadius="20px" p="4" mb="4">
               <Post post={post} postedBy={post.postedBy} />
             </Box>
           ))}

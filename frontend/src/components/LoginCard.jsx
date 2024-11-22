@@ -48,7 +48,7 @@ export default function LoginCard() {
         <Stack align={"center"}>
           <Heading fontSize={"4xl"}>Login to your account</Heading>
         </Stack>
-        <Box rounded={"lg"} bg={useColorModeValue("white", "gray.dark")} boxShadow={"lg"} p={8} w={{ base: "full", sm: "400px" }}>
+        <Box rounded={"lg"} bg={useColorModeValue("#ffff", "#181818")} boxShadow={"lg"} p={8} w={{ base: "full", sm: "400px" }}>
           <Stack spacing={4}>
             <FormControl id="username" isRequired>
               <FormLabel>Username</FormLabel>

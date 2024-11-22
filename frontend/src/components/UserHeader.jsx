@@ -14,8 +14,8 @@ const UserHeader = ({ user }) => {
   const toast = useToast();
   const currentUser = useRecoilValue(userAtom); // logged in user
   const { handleFollowUnfollow, following, updating } = useFollowUnfollow(user);
-
   const { colorMode } = useColorMode();
+
   const copyURL = async () => {
     try {
       const currentURL = window.location.href;
@@ -86,7 +86,7 @@ const UserHeader = ({ user }) => {
         </Link>
       )}
       {currentUser?._id !== user._id && (
-        <Button size={"sm"} onClick={handleFollowUnfollow} isLoading={updating}>
+        <Button size={"sm"} bg={colorMode === "dark" ? "gray.800" : "gray.300"} onClick={handleFollowUnfollow} isLoading={updating}>
           {following ? "Unfollow" : "Follow"}
         </Button>
       )}
@@ -94,7 +94,9 @@ const UserHeader = ({ user }) => {
         <Flex gap={2} alignItems={"center"}>
           <Text color={"gray.light"}>{user.followers.length} followers</Text>
           <Box w="1" h="1" bg={"gray.light"} borderRadius={"full"}></Box>
-          <Link color={"gray.light"}>instagram.com</Link>
+          <Link href="https://instagram.com" isExternal color="gray.light">
+            instagram.com
+          </Link>
         </Flex>
         <Flex>
           <Box className="icon-container" marginRight={2}>
@@ -118,10 +120,10 @@ const UserHeader = ({ user }) => {
       </Flex>
 
       <Flex w={"full"}>
-        <Flex flex={1} borderBottom={"3px solid white"} justifyContent={"center"} pb="3" cursor={"pointer"}>
+        <Flex flex={1} borderBottom={colorMode === "dark" ? "2px solid white" : "3px solid black"} justifyContent={"center"} pb="3" cursor={"pointer"}>
           <Text fontWeight={"bold"}> Freals</Text>
         </Flex>
-        <Flex flex={1} borderBottom={"3px solid #5e6261"} justifyContent={"center"} color={"gray.light"} pb="3" cursor={"pointer"}>
+        <Flex flex={1} borderBottom={colorMode === "dark" ? "2px solid gray" : "3px solid lightgray"} justifyContent={"center"} color={"gray.light"} pb="3" cursor={"pointer"}>
           <Text fontWeight={"bold"}> Replies</Text>
         </Flex>
       </Flex>

@@ -1,6 +1,7 @@
 import { Avatar } from "@chakra-ui/avatar";
 import { Image } from "@chakra-ui/image";
 import { Box, Flex, Text } from "@chakra-ui/layout";
+import { useColorMode } from "@chakra-ui/react";
 import { Link, useNavigate } from "react-router-dom";
 import Actions from "./Actions";
 import { useEffect, useState } from "react";
@@ -13,6 +14,7 @@ import postsAtom from "../atoms/postsAtom";
 
 const Post = ({ post, postedBy }) => {
   const [user, setUser] = useState(null);
+  const { colorMode } = useColorMode();
   const showToast = useShowToast();
   const currentUser = useRecoilValue(userAtom);
   const [posts, setPosts] = useRecoilState(postsAtom);
@@ -141,7 +143,7 @@ const Post = ({ post, postedBy }) => {
           )}
           {/* Hiển thị vị trí nếu có */}
           {location && (
-            <Text fontSize="sm" color="gray.light" mt={2}>
+            <Text fontSize="sm" color={colorMode === "dark" ? "white" : "black"} mt={2}>
               <strong>Location:</strong> {location}
             </Text>
           )}

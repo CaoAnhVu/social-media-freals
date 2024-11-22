@@ -1,6 +1,7 @@
 import { Button, Flex, FormControl, FormLabel, Heading, Input, Stack, useColorModeValue, Avatar, Center } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { useRecoilState } from "recoil";
+import { ArrowBackIcon } from "@chakra-ui/icons";
 import userAtom from "../atoms/userAtom";
 import { useNavigate } from "react-router-dom";
 import { usePreviewImg } from "../hooks/usePreviewImg";
@@ -59,8 +60,19 @@ export default function UpdateProfilePage() {
   };
   return (
     <form onSubmit={handleSubmit}>
-      <Flex align={"center"} justify={"center"} my={6} mt={16}>
-        <Stack spacing={4} w={"full"} maxW={"xl"} bg={useColorModeValue("white", "gray.dark")} rounded={"xl"} boxShadow={"lg"} p={6}>
+      <Flex align={"center"} justify={"center"} my={6}>
+        <Stack
+          spacing={4}
+          w={"full"}
+          maxW={"xl"}
+          bg={useColorModeValue("white", "#181818")}
+          border="1px solid rgba(128, 128, 128, 0.5)"
+          borderRadius="20px"
+          rounded={"xl"}
+          boxShadow={"lg"}
+          mt={16}
+          p={6}
+        >
           <Heading lineHeight={1.1} fontSize={{ base: "2xl", sm: "3xl" }}>
             User Profile Edit
           </Heading>
