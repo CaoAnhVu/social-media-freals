@@ -16,11 +16,10 @@ const HomePage = () => {
 
   useEffect(() => {
     const getFeedPosts = async () => {
-      if (!user || !user.userId) {
-        // Nếu không có user, điều hướng về trang Login
+      if (!user || !user._id) {
+        // Nếu không có user, chỉ hiển thị thông báo lỗi mà không chuyển hướng
         showToast("Error", "User not logged in or invalid user data", "error");
         setLoading(false);
-        navigate("/login"); // Chuyển hướng tới trang đăng nhập
         return;
       }
 
@@ -58,7 +57,7 @@ const HomePage = () => {
     };
 
     getFeedPosts();
-  }, [user, showToast, setPosts, navigate]);
+  }, [user, showToast, setPosts]);
 
   return (
     <Flex mt={70} gap="10" alignItems={"flex-start"}>
@@ -72,7 +71,6 @@ const HomePage = () => {
         {!loading && posts.length === 0 && (
           <h1>{user?.following?.length === 0 ? "You are not following anyone. Start following users to see their posts!" : "No posts available in your feed. Check back later!"}</h1>
         )}
-
         {!loading &&
           Array.isArray(posts) &&
           posts.map((post) => (

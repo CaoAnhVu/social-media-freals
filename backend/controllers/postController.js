@@ -215,7 +215,7 @@ const replyToPost = async (req, res) => {
 const getFeedPosts = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { page = 1, limit = 10 } = req.query; // Phân trang: page và limit
+    const { page = 1, limit = 10 } = req.query;
 
     const user = await User.findById(userId);
     if (!user) {
@@ -225,8 +225,8 @@ const getFeedPosts = async (req, res) => {
     const following = user.following;
     const feedPosts = await Post.find({ postedBy: { $in: following } })
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit) // Bỏ qua số lượng bài viết đã hiển thị
-      .limit(limit); // Giới hạn số lượng bài viết
+      .skip((page - 1) * limit)
+      .limit(limit);
 
     res.status(200).json(feedPosts);
   } catch (err) {
@@ -236,27 +236,17 @@ const getFeedPosts = async (req, res) => {
 
 const getUserPosts = async (req, res) => {
   const { username } = req.params;
-  console.log("Username Param:", username); // Log tham số username từ URL
-
   try {
     const user = await User.findOne({ username });
-    console.log("User Found:", user); // Log người dùng tìm được
-
     if (!user) {
-      console.log("User not found with username:", username); // Log khi không tìm thấy người dùng
-      return res.status(404).json({ error: `User '${username}' not found` });
+      return res.status(404).json({ error: "User not found" });
     }
 
-    const posts = await Post.find({ postedBy: user._id })
-      .populate("postedBy", "username profilePic") // Thêm thông tin người dùng vào bài viết
-      .sort({ createdAt: -1 });
-
-    console.log("Posts Found:", posts); // Log danh sách bài viết tìm được
+    const posts = await Post.find({ postedBy: user._id }).sort({ createdAt: -1 });
 
     res.status(200).json(posts);
   } catch (error) {
-    console.log("Error in getUserPosts:", error.message); // Log lỗi
-    res.status(500).json({ error: "Server error. Unable to fetch user posts." });
+    res.status(500).json({ error: error.message });
   }
 };
 

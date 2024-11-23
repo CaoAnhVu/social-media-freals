@@ -29,7 +29,7 @@ const Post = ({ post, postedBy }) => {
     const getUser = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/users/profile/${post.postedBy.username}`);
+        const res = await fetch("/api/users/profile/" + postedBy);
         const data = await res.json();
         if (data.error) {
           showToast("Error", data.error, "error");

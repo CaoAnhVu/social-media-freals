@@ -3,7 +3,7 @@ import Post from "../models/postModel.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 import { v2 as cloudinary } from "cloudinary";
-
+import mongoose from "mongoose";
 // const cloudinary = new CloudinaryController();
 const getUserProfile = async (req, res) => {
   // We will fetch user profile either with username or userId
@@ -13,7 +13,13 @@ const getUserProfile = async (req, res) => {
   try {
     let user;
 
-    user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
+    // query is userId
+    if (mongoose.Types.ObjectId.isValid(query)) {
+      user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
+    } else {
+      // query is username
+      user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
+    }
 
     if (!user) return res.status(404).json({ error: "User not found" });
     // Cach dung

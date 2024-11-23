@@ -10,7 +10,7 @@ import { useRecoilState } from "recoil";
 import postsAtom from "../atoms/postsAtom";
 
 const UserPage = () => {
-  const { user, loading: userLoading } = useGetUserProfile(); // Adjusted to fetch user
+  const { user, loading: userLoading } = useGetUserProfile();
   const { username } = useParams();
   const { colorMode } = useColorMode();
   const showToast = useShowToast();
@@ -20,25 +20,25 @@ const UserPage = () => {
 
   useEffect(() => {
     const getPosts = async () => {
-      if (!user) return; // Ensure user data is loaded
-      setFetchingPosts(true); // Begin fetching posts
+      if (!user) return;
+      setFetchingPosts(true);
       try {
-        const res = await fetch(`/api/posts/user/${username}`);
+        const res = await fetch("/api/posts/user/" + username);
         const data = await res.json();
-        console.log("Fetched posts:", data); // For debugging
-        setPosts(data); // Update state with posts data
+        console.log("Fetched posts:", data);
+        setPosts(data);
       } catch (error) {
         showToast("Error", error.message, "error");
-        setPosts([]); // If error, set posts to empty
+        setPosts([]);
       } finally {
-        setFetchingPosts(false); // End fetching state
+        setFetchingPosts(false);
       }
     };
 
     if (user) {
-      getPosts(); // Only fetch posts if user is available
+      getPosts();
     }
-  }, [username, showToast, setPosts, user]); // Trigger when username or user changes
+  }, [username, showToast, setPosts, user]);
 
   if (userLoading) {
     return (
@@ -68,7 +68,7 @@ const UserPage = () => {
           top="-40px"
           left="10px"
           size="sm"
-          onClick={() => navigate(-1)} // Điều hướng quay lại trang trước
+          onClick={() => navigate(-1)}
           color={colorMode === "dark" ? "white" : "black"}
           _hover={{ bg: "gray.600" }}
           _active={{ bg: "gray.500" }}
@@ -86,7 +86,6 @@ const UserPage = () => {
           mt={"120px"}
         >
           <UserHeader user={user} />
-          {/* If posts are still loading or empty */}
           {fetchingPosts && (
             <Flex justifyContent={"center"} my={12}>
               <Spinner size={"xl"} />
@@ -95,7 +94,6 @@ const UserPage = () => {
 
           {!fetchingPosts && (!posts || posts.length === 0) && <h1>User has no posts.</h1>}
 
-          {/* Render posts if available */}
           {posts && posts.length > 0 && posts.map((post) => <Post key={post._id} post={post} postedBy={post.postedBy} />)}
         </Box>
       </Box>

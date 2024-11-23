@@ -41,7 +41,6 @@ export default function LoginCard() {
       setLoading(false);
     }
   };
-
   return (
     <Flex mt={"100px"} align={"center"} justify={"center"}>
       <Stack spacing={8} mx={"auto"} maxW={"lg"} py={6} px={6}>
