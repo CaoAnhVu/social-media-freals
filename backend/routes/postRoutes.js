@@ -9,7 +9,7 @@ const storage = multer.memoryStorage();
 // Endpoint để nhận video upload
 router.post("/uploadVideo", upload.single("video"), uploadVideoBlob);
 
-router.get("/user/:username", protectRoute, getUserPosts);
+router.get("/user/:username", getUserPosts);
 router.get("/feed", protectRoute, getFeedPosts);
 router.get("/:id", getPost);
 router.post(
