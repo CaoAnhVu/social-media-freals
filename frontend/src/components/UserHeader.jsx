@@ -99,10 +99,21 @@ const UserHeader = ({ user }) => {
           </Link>
         </Flex>
         <Flex>
-          <Box className="icon-container" marginRight={2}>
+          <Box
+            className="icon-container"
+            marginRight={2}
+            _hover={{
+              bg: colorMode === "dark" ? "#1e1e1e" : "#e2e8f0",
+            }}
+          >
             <BsInstagram size={24} cursor={"pointer"} />
           </Box>
-          <Box className="icon-container">
+          <Box
+            className="icon-container"
+            _hover={{
+              bg: colorMode === "dark" ? "#1e1e1e" : "#e2e8f0",
+            }}
+          >
             <Menu>
               <MenuButton>
                 <CgMoreO size={24} cursor={"pointer"} />
@@ -120,10 +131,31 @@ const UserHeader = ({ user }) => {
       </Flex>
 
       <Flex w={"full"}>
-        <Flex flex={1} borderBottom={colorMode === "dark" ? "2px solid white" : "3px solid black"} justifyContent={"center"} pb="3" cursor={"pointer"}>
+        <Flex
+          flex={1}
+          borderBottom={colorMode === "dark" ? "2px solid white" : "3px solid black"}
+          justifyContent={"center"}
+          pb="3"
+          cursor={"pointer"}
+          transition="box-shadow 0.3s ease-in-out"
+          _hover={{
+            boxShadow: colorMode === "dark" ? "0px 4px 15px rgba(255, 255, 255, 0.8)" : "0px 4px 15px rgba(0, 0, 0, 0.5)",
+          }}
+        >
           <Text fontWeight={"bold"}> Freals</Text>
         </Flex>
-        <Flex flex={1} borderBottom={colorMode === "dark" ? "2px solid gray" : "3px solid lightgray"} justifyContent={"center"} color={"gray.light"} pb="3" cursor={"pointer"}>
+        <Flex
+          flex={1}
+          borderBottom={colorMode === "dark" ? "2px solid gray" : "3px solid lightgray"}
+          justifyContent={"center"}
+          color={"gray.light"}
+          pb="3"
+          cursor={"pointer"}
+          transition="box-shadow 0.3s ease-in-out"
+          _hover={{
+            boxShadow: colorMode === "dark" ? "0px 4px 15px rgba(128, 128, 128, 0.8)" : "0px 4px 15px rgba(192, 192, 192, 0.5)",
+          }}
+        >
           <Text fontWeight={"bold"}> Replies</Text>
         </Flex>
       </Flex>

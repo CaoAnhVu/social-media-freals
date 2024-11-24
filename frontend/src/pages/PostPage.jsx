@@ -24,34 +24,22 @@ const PostPage = () => {
   const location = currentPost?.location && currentPost.location.name ? currentPost.location.name : null;
 
   useEffect(() => {
-    const fetchUserAndPosts = async () => {
+    const getPost = async () => {
+      setPosts([]);
       try {
-        // Fetch user
-        const userRes = await fetch(`/api/users/${pid}`);
-        const userData = await userRes.json();
-        if (userData.error) {
-          showToast("Error", userData.error, "error");
-          navigate("/"); // Điều hướng đến trang khác nếu không tìm thấy user
+        const res = await fetch(`/api/posts/${pid}`);
+        const data = await res.json();
+        if (data.error) {
+          showToast("Error", data.error, "error");
           return;
         }
-
-        // Fetch posts
-        const postRes = await fetch(`/api/posts/${pid}`);
-        const postData = await postRes.json();
-        if (postData.error) {
-          showToast("Error", postData.error, "error");
-          navigate("/"); // Điều hướng đến trang khác nếu không tìm thấy bài viết
-          return;
-        }
-
-        setPosts([postData]);
-      } catch (err) {
-        showToast("Error", err.message, "error");
+        setPosts([data]);
+      } catch (error) {
+        showToast("Error", error.message, "error");
       }
     };
-
-    fetchUserAndPosts();
-  }, [pid, showToast, navigate, setPosts]);
+    getPost();
+  }, [showToast, pid, setPosts]);
 
   const handleDeletePost = async () => {
     try {
@@ -101,7 +89,7 @@ const PostPage = () => {
       />
 
       <Box
-        bg={colorMode === "dark" ? "#181818" : "gray.300"}
+        bg={colorMode === "dark" ? "#181818" : "white"}
         w={{ base: "640px", md: "900px", lg: "640px" }}
         mx="auto"
         border="1px solid rgba(128, 128, 128, 0.5)"

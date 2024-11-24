@@ -22,7 +22,7 @@ router.post(
   createPost
 );
 router.delete("/:id", protectRoute, deletePost);
-router.post("/like/:id", protectRoute, likeUnlikePost);
-router.post("/reply/:id", protectRoute, replyToPost);
+router.patch("/like/:id", protectRoute, likeUnlikePost);
+router.patch("/reply/:id", protectRoute, replyToPost);
 
 export default router;

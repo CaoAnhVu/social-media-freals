@@ -22,36 +22,39 @@ const Actions = ({ post }) => {
     setIsLiking(true);
     try {
       const res = await fetch("/api/posts/like/" + post._id, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
       });
-      const data = await res.json();
-      if (data.error) return showToast("Error", data.error, "error");
+      console.log("Response Status: ", res.status);
 
-      if (!liked) {
-        // add the id of the current user to post.likes array
-        const updatedPosts = posts.map((p) => {
-          if (p._id === post._id) {
-            return { ...p, likes: [...p.likes, user._id] };
-          }
-          return p;
-        });
-        setPosts(updatedPosts);
-      } else {
-        // remove the id of the current user from post.likes array
-        const updatedPosts = posts.map((p) => {
-          if (p._id === post._id) {
-            return { ...p, likes: p.likes.filter((id) => id !== user._id) };
-          }
-          return p;
-        });
-        setPosts(updatedPosts);
+      if (!res.ok) {
+        const errorText = await res.text(); // Get full error response text
+        console.error("Error Response Text: ", errorText);
+        throw new Error(`Error: ${res.status} - ${errorText}`);
       }
 
+      const data = await res.json();
+      console.log("Response Data: ", data);
+
+      if (data.error) {
+        showToast("Error", data.error, "error");
+        return;
+      }
+
+      // Handle state update on successful response
+      const updatedPosts = posts.map((p) => {
+        if (p._id === post._id) {
+          return { ...p, likes: liked ? p.likes.filter((id) => id !== user._id) : [...p.likes, user._id] };
+        }
+        return p;
+      });
+      setPosts(updatedPosts);
       setLiked(!liked);
+      showToast("Success", liked ? "Post liked successfully" : "Post unliked successfully", "success");
     } catch (error) {
+      console.error("Error during like/unlike:", error);
       showToast("Error", error.message, "error");
     } finally {
       setIsLiking(false);
@@ -64,7 +67,7 @@ const Actions = ({ post }) => {
     setIsReplying(true);
     try {
       const res = await fetch("/api/posts/reply/" + post._id, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
@@ -121,11 +124,11 @@ const Actions = ({ post }) => {
 
       <Flex gap={2} alignItems={"center"}>
         <Text color={"gray.light"} fontSize="sm">
-          {post.replies.length} replies
+          {post.likes.length} likes
         </Text>
         <Box w={0.5} h={0.5} borderRadius={"full"} bg={"gray.light"}></Box>
         <Text color={"gray.light"} fontSize="sm">
-          {post.likes.length} likes
+          {post.replies.length} replies
         </Text>
       </Flex>
 

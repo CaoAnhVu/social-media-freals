@@ -59,3 +59,4 @@ postSchema.index({ "location.coordinates": "2dsphere" });
 const Post = mongoose.model("Post", postSchema);
 
 export default Post;
+// Làm thêm đăng lại và gửi cho người dùng

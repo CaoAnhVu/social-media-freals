@@ -22,7 +22,6 @@ const Post = ({ post, postedBy }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Kiểm tra và lấy location nếu có
   const location = post.location && post.location.name ? post.location.name : null;
 
   useEffect(() => {
@@ -125,14 +124,14 @@ const Post = ({ post, postedBy }) => {
 
           <Text fontSize={"sm"}>{post.text}</Text>
 
-          {/* Hiển thị hình ảnh nếu có */}
+          {/* Hiển thị hình ảnh  */}
           {post.img && (
             <Box borderRadius={6} overflow={"hidden"} border={"1px solid"} borderColor={"gray.light"}>
               <Image src={post.img} w={"full"} />
             </Box>
           )}
 
-          {/* Hiển thị video nếu có */}
+          {/* Hiển thị video  */}
           {post.video && (
             <Box borderRadius={6} overflow={"hidden"} border={"1px solid"} borderColor={"gray.light"}>
               <video width="100%" controls>
@@ -141,7 +140,7 @@ const Post = ({ post, postedBy }) => {
               </video>
             </Box>
           )}
-          {/* Hiển thị vị trí nếu có */}
+          {/* Hiển thị vị trí  */}
           {location && (
             <Text fontSize="sm" color={colorMode === "dark" ? "white" : "black"} mt={2}>
               <strong>Location:</strong> {location}

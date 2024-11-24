@@ -17,14 +17,13 @@ const HomePage = () => {
   useEffect(() => {
     const getFeedPosts = async () => {
       if (!user || !user._id) {
-        // Nếu không có user, chỉ hiển thị thông báo lỗi mà không chuyển hướng
         showToast("Error", "User not logged in or invalid user data", "error");
         setLoading(false);
         return;
       }
 
       setLoading(true);
-      setPosts([]); // Clear posts before fetching new ones
+      setPosts([]);
 
       try {
         const res = await fetch("/api/posts/feed");

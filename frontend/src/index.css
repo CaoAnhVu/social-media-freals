@@ -1,3 +1,4 @@
+/* Dark mode */
 .icon-container {
   border-radius: 50%;
   padding: 8px;
@@ -8,6 +9,11 @@
 
 .icon-container:hover {
   background-color: #1e1e1e;
+}
+
+/* Light mode */
+body[data-theme="light"] .icon-container:hover {
+  background-color: #e2e8f0;
 }
 
 ::-webkit-scrollbar {

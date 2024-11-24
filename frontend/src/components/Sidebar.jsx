@@ -31,26 +31,17 @@ const Sidebar = () => {
       display="flex"
       flexDir="column"
       gap={4}
-      overflow="hidden" // Ẩn chữ khi sidebar thu gọn
+      overflow="hidden"
       transition="width 0.3s ease"
-      role="group" // Đặt sidebar làm nhóm
+      role="group"
       _hover={{
-        width: "200px", // Mở rộng sidebar khi hover
+        width: "200px",
       }}
     >
       <Link _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }} mt={12} as={RouterLink} to="/" display="flex" alignItems="center">
         <Flex alignItems="center">
           <IconButton icon={<AiFillHome />} aria-label="Home" size="lg" />
-          <Text
-            ml={4}
-            fontSize="lg"
-            whiteSpace="nowrap"
-            overflow="hidden"
-            color={colorMode === "dark" ? "white" : "black"}
-            opacity={0} // Ẩn chữ mặc định
-            transition="opacity 0.3s ease"
-            _groupHover={{ opacity: 1 }} // Hiển thị chữ khi hover vào sidebar
-          >
+          <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} opacity={0} transition="opacity 0.3s ease" _groupHover={{ opacity: 1 }}>
             Home
           </Text>
         </Flex>
@@ -61,16 +52,7 @@ const Sidebar = () => {
           <Link _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }} as={RouterLink} to={`/${user.username}`} display="flex" alignItems="center">
             <Flex alignItems="center">
               <IconButton icon={<RxAvatar />} aria-label="Profile" size="lg" />
-              <Text
-                ml={4}
-                fontSize="lg"
-                whiteSpace="nowrap"
-                overflow="hidden"
-                color={colorMode === "dark" ? "white" : "black"}
-                opacity={0}
-                transition="opacity 0.3s ease"
-                _groupHover={{ opacity: 1 }} // Hiển thị chữ khi hover vào sidebar
-              >
+              <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} opacity={0} transition="opacity 0.3s ease" _groupHover={{ opacity: 1 }}>
                 Profile
               </Text>
             </Flex>
@@ -78,16 +60,7 @@ const Sidebar = () => {
           <Link _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }} as={RouterLink} to="/chat" display="flex" alignItems="center">
             <Flex alignItems="center">
               <IconButton icon={<BsFillChatQuoteFill />} aria-label="Chat" size="lg" />
-              <Text
-                ml={4}
-                fontSize="lg"
-                whiteSpace="nowrap"
-                overflow="hidden"
-                color={colorMode === "dark" ? "white" : "black"}
-                opacity={0}
-                transition="opacity 0.3s ease"
-                _groupHover={{ opacity: 1 }} // Hiển thị chữ khi hover vào sidebar
-              >
+              <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} opacity={0} transition="opacity 0.3s ease" _groupHover={{ opacity: 1 }}>
                 Messenger
               </Text>
             </Flex>
@@ -95,25 +68,12 @@ const Sidebar = () => {
           <Link _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }} as={RouterLink} to="/settings" display="flex" alignItems="center">
             <Flex alignItems="center">
               <IconButton icon={<MdOutlineSettings />} aria-label="Settings" size="lg" />
-              <Text
-                ml={4}
-                fontSize="lg"
-                whiteSpace="nowrap"
-                overflow="hidden"
-                color={colorMode === "dark" ? "white" : "black"}
-                opacity={0}
-                transition="opacity 0.3s ease"
-                _groupHover={{ opacity: 1 }} // Hiển thị chữ khi hover vào sidebar
-              >
+              <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} opacity={0} transition="opacity 0.3s ease" _groupHover={{ opacity: 1 }}>
                 Settings
               </Text>
             </Flex>
           </Link>
-          <Flex
-            alignItems="center"
-            _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }}
-            onClick={logout} // Gán sự kiện logout cho Flex
-          >
+          <Flex alignItems="center" _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }} onClick={logout}>
             <IconButton icon={<FiLogOut />} aria-label="Logout" size="lg" />
             <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} opacity={0} transition="opacity 0.3s ease" _groupHover={{ opacity: 1 }}>
               Logout
@@ -122,12 +82,7 @@ const Sidebar = () => {
         </>
       ) : (
         <>
-          <Link
-            as={RouterLink}
-            to={"/auth"}
-            onClick={() => setAuthScreen("login")}
-            _hover={{ textDecoration: "none" }} // Xóa gạch chân khi hover
-          >
+          <Link as={RouterLink} to={"/auth"} onClick={() => setAuthScreen("login")} _hover={{ textDecoration: "none" }}>
             <Flex alignItems="center">
               <IconButton icon={<CiLogin />} aria-label="Login" size="lg" />
               <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} _hover={{ fontWeight: "bold", color: "white" }}>
