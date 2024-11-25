@@ -50,6 +50,16 @@ const postSchema = mongoose.Schema(
         },
       },
     ],
+    reposts: {
+      type: [mongoose.Schema.Types.ObjectId], // Danh sách người dùng đã repost bài viết
+      ref: "User",
+      default: [],
+    },
+    sharedBy: {
+      type: [mongoose.Schema.Types.ObjectId], // Danh sách người dùng đã share bài viết
+      ref: "User",
+      default: [],
+    },
   },
   {
     timestamps: true,
@@ -59,4 +69,3 @@ postSchema.index({ "location.coordinates": "2dsphere" });
 const Post = mongoose.model("Post", postSchema);
 
 export default Post;
-// Làm thêm đăng lại và gửi cho người dùng

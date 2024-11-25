@@ -212,6 +212,51 @@ const replyToPost = async (req, res) => {
   }
 };
 
+const repostPost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user._id;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+
+    if (post.reposts.includes(userId)) {
+      post.reposts = post.reposts.filter((id) => id.toString() !== userId.toString());
+      await post.save();
+      return res.status(200).json({ message: "Repost removed", post });
+    }
+
+    post.reposts.push(userId);
+    await post.save();
+
+    res.status(200).json({ message: "Post reposted", post });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const sharePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user._id;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+
+    if (post.sharedBy.includes(userId)) {
+      return res.status(400).json({ error: "You have already shared this post" });
+    }
+
+    // Thêm userId vào danh sách sharedBy
+    post.sharedBy.push(userId);
+    await post.save();
+
+    res.status(200).json({ message: "Post shared successfully", post });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 const getFeedPosts = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -250,4 +295,4 @@ const getUserPosts = async (req, res) => {
   }
 };
 
-export { verifyUserOwnership, createPost, deletePost, getPost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, upload, uploadVideoBlob };
+export { verifyUserOwnership, createPost, deletePost, getPost, likeUnlikePost, replyToPost, repostPost, sharePost, getFeedPosts, getUserPosts, upload, uploadVideoBlob };
