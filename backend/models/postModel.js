@@ -18,7 +18,7 @@ const postSchema = mongoose.Schema(
       type: String,
     },
     location: {
-      name: { type: String, default: "" },
+      name: { type: String, default: null },
       coordinates: {
         type: [Number],
         index: "2dsphere",

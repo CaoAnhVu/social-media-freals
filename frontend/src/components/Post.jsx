@@ -23,6 +23,7 @@ const Post = ({ post, postedBy }) => {
   const [error, setError] = useState(null);
 
   const location = post.location && post.location.name ? post.location.name : null;
+  const coordinates = post?.location?.coordinates?.length ? post.location.coordinates.join(", ") : "No coordinates available";
 
   useEffect(() => {
     const getUser = async () => {
@@ -151,9 +152,19 @@ const Post = ({ post, postedBy }) => {
           )}
 
           {/* Hiển thị vị trí */}
-          {location && (
+          {location !== "No location specified" ? (
             <Text fontSize="sm" color={colorMode === "dark" ? "white" : "black"} mt={2}>
               <strong>Location:</strong> {location}
+            </Text>
+          ) : (
+            <Text fontSize="sm" color={colorMode === "dark" ? "white" : "black"} mt={2}>
+              {location}
+            </Text>
+          )}
+          {/* Hiển thị toạ độ */}
+          {coordinates && coordinates !== "No coordinates available" && (
+            <Text fontSize="sm" color={colorMode === "dark" ? "white" : "black"} mt={2}>
+              <strong>Coordinates:</strong> {coordinates}
             </Text>
           )}
 
