@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
 import { formatDistanceToNow } from "date-fns";
 import { DeleteIcon } from "@chakra-ui/icons";
+import { MdOutlineCommentsDisabled } from "react-icons/md";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import postsAtom from "../atoms/postsAtom";
@@ -19,7 +20,7 @@ const Post = ({ post, postedBy }) => {
   const currentUser = useRecoilValue(userAtom);
   const [posts, setPosts] = useRecoilState(postsAtom);
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const location = post.location && post.location.name ? post.location.name : null;
@@ -67,7 +68,21 @@ const Post = ({ post, postedBy }) => {
   };
 
   if (!user) return null;
+  if (loading) {
+    return (
+      <Flex justifyContent="center" alignItems="center" height="200px">
+        <Spinner size="xl" />
+      </Flex>
+    );
+  }
 
+  if (error) {
+    return (
+      <Flex justifyContent="center" alignItems="center" height="200px">
+        <Text color="red.500">{error}</Text>
+      </Flex>
+    );
+  }
   return (
     <Link to={`/${user.username}/post/${post._id}`}>
       <Flex gap={3} mb={4} py={5}>
@@ -85,22 +100,16 @@ const Post = ({ post, postedBy }) => {
           </Skeleton>
           <Box w="1px" h={"full"} bg="gray.light" my={2}></Box>
           <Box position={"relative"} w={"full"}>
-            {post.replies.length === 0 && <Text textAlign={"center"}>🥱</Text>}
-            {post.replies.slice(0, 3).map((reply, index) => (
-              <Skeleton key={index} isLoaded={!loading} width="30px" height="30px">
-                <Avatar
-                  size="xs"
-                  name={reply.userName || "John Doe"}
-                  src={reply.userProfilePic}
-                  position={"absolute"}
-                  top={index === 0 ? "0px" : index === 1 ? "auto" : "auto"}
-                  bottom={index === 1 ? "0px" : index === 2 ? "0px" : "auto"}
-                  left={index === 2 ? "4px" : "auto"}
-                  right={index === 1 ? "-5px" : "auto"}
-                  padding={"2px"}
-                />
-              </Skeleton>
-            ))}
+            {post.replies.length === 0 && (
+              <Text textAlign={"center"} ml={4} fontSize={"xl"}>
+                <MdOutlineCommentsDisabled />
+              </Text>
+            )}
+            {post.replies[0] && <Avatar size="xs" name="John doe" src={post.replies[0].userProfilePic} position={"absolute"} top={"0px"} left="15px" padding={"2px"} />}
+
+            {post.replies[1] && <Avatar size="xs" name="John doe" src={post.replies[1].userProfilePic} position={"absolute"} bottom={"0px"} right="-5px" padding={"2px"} />}
+
+            {post.replies[2] && <Avatar size="xs" name="John doe" src={post.replies[2].userProfilePic} position={"absolute"} bottom={"0px"} left="4px" padding={"2px"} />}
           </Box>
         </Flex>
         <Flex flex={1} flexDirection={"column"} gap={2}>
@@ -174,6 +183,7 @@ const Post = ({ post, postedBy }) => {
               <strong>Reposted by:</strong> {post.repostedBy.username}
             </Text>
           )}
+
           <Flex gap={3} my={1}>
             <Actions post={post} />
           </Flex>

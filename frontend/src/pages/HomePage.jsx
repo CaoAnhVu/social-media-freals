@@ -70,13 +70,16 @@ const HomePage = () => {
         {!loading && posts.length === 0 && (
           <h1>{user?.following?.length === 0 ? "You are not following anyone. Start following users to see their posts!" : "No posts available in your feed. Check back later!"}</h1>
         )}
-        {!loading &&
-          Array.isArray(posts) &&
-          posts.map((post) => (
+        {posts.map((post) => {
+          if (!post._id) {
+            return null;
+          }
+          return (
             <Box key={post._id} border="1px solid rgba(128, 128, 128, 0.5)" bg={colorMode === "dark" ? "#181818" : "white"} borderRadius="20px" p="4" mb="4">
               <Post post={post} postedBy={post.postedBy} />
             </Box>
-          ))}
+          );
+        })}
       </Box>
 
       <Box

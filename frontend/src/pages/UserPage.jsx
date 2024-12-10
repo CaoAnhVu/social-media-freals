@@ -86,15 +86,18 @@ const UserPage = () => {
           mt={"120px"}
         >
           <UserHeader user={user} />
+
+          {!fetchingPosts && (!posts || posts.length === 0) && <h1>User has no posts.</h1>}
+
           {fetchingPosts && (
             <Flex justifyContent={"center"} my={12}>
               <Spinner size={"xl"} />
             </Flex>
           )}
 
-          {!fetchingPosts && (!posts || posts.length === 0) && <h1>User has no posts.</h1>}
-
-          {posts && posts.length > 0 && posts.map((post) => <Post key={post._id} post={post} postedBy={post.postedBy} />)}
+          {posts.map((post) => (
+            <Post key={post._id} post={post} postedBy={post.postedBy} />
+          ))}
         </Box>
       </Box>
     </>

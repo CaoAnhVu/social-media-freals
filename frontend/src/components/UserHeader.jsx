@@ -27,7 +27,7 @@ const UserHeader = ({ user }) => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Error.",
         status: "error",
@@ -131,32 +131,14 @@ const UserHeader = ({ user }) => {
       </Flex>
 
       <Flex w={"full"}>
-        <Flex
-          flex={1}
-          borderBottom={colorMode === "dark" ? "2px solid white" : "3px solid black"}
-          justifyContent={"center"}
-          pb="3"
-          cursor={"pointer"}
-          transition="box-shadow 0.3s ease-in-out"
-          _hover={{
-            boxShadow: colorMode === "dark" ? "0px 4px 15px rgba(255, 255, 255, 0.8)" : "0px 4px 15px rgba(0, 0, 0, 0.5)",
-          }}
-        >
-          <Text fontWeight={"bold"}> Freals</Text>
+        <Flex flex={1} borderBottom={colorMode === "dark" ? "2px solid white" : "3px solid black"} justifyContent={"center"} pb="3" cursor={"pointer"}>
+          <Text fontWeight={"bold"}> Post</Text>
         </Flex>
-        <Flex
-          flex={1}
-          borderBottom={colorMode === "dark" ? "2px solid gray" : "3px solid lightgray"}
-          justifyContent={"center"}
-          color={"gray.light"}
-          pb="3"
-          cursor={"pointer"}
-          transition="box-shadow 0.3s ease-in-out"
-          _hover={{
-            boxShadow: colorMode === "dark" ? "0px 4px 15px rgba(128, 128, 128, 0.8)" : "0px 4px 15px rgba(192, 192, 192, 0.5)",
-          }}
-        >
+        <Flex flex={1} borderBottom={colorMode === "dark" ? "2px solid gray" : "3px solid lightgray"} justifyContent={"center"} color={"gray.light"} pb="3" cursor={"pointer"}>
           <Text fontWeight={"bold"}> Replies</Text>
+        </Flex>
+        <Flex flex={1} borderBottom={colorMode === "dark" ? "2px solid gray" : "3px solid lightgray"} justifyContent={"center"} color={"gray.light"} pb="3" cursor={"pointer"}>
+          <Text fontWeight={"bold"}> Reposts</Text>
         </Flex>
       </Flex>
     </VStack>

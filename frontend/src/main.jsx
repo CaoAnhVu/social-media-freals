@@ -10,31 +10,36 @@ import { BrowserRouter } from "react-router-dom";
 import { RecoilRoot } from "recoil";
 import { SocketContextProvider } from "./context/SocketContext.jsx";
 
+// Global styles configuration
 const styles = {
   global: (props) => ({
     body: {
       color: mode("gray.800", "whiteAlpha.900")(props),
       bg: mode("gray.100", "#101010")(props),
+      fontFamily: "Segoe UI, Noto Emoji, Arial, sans-serif", // Add a global font family for consistency
     },
   }),
 };
 
+// Chakra theme configuration
 const config = {
-  initialColorMode: "dark",
-  useSystemColorMode: true,
+  initialColorMode: "dark", // Default color mode
+  useSystemColorMode: true, // Allow system to control color mode
 };
 
+// Custom color configurations
 const colors = {
   gray: {
-    light: "#616161",
-    dark: "#1e1e1e",
+    light: "#616161", // Lighter gray for light mode
+    dark: "#1e1e1e", // Darker gray for dark mode
   },
 };
 
+// Extend the theme with custom settings
 const theme = extendTheme({ config, styles, colors });
 
+// Render the application with Chakra, routing, and recoil
 ReactDOM.createRoot(document.getElementById("root")).render(
-  // React.StrictMode renders every component twice (in the initial render), only in development.
   <React.StrictMode>
     <RecoilRoot>
       <BrowserRouter>

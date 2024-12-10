@@ -89,15 +89,16 @@ const createPost = async (req, res) => {
 
 const getPost = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    // Tìm bài viết theo ID và sử dụng populate
+    const post = await Post.findById(req.params.id).populate("postedBy", "username profilePic").populate("reposts", "username profilePic");
 
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    res.status(200).json(post);
+    res.status(200).json(post); // Trả về dữ liệu bài viết
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message }); // Xử lý lỗi
   }
 };
 
@@ -191,6 +192,16 @@ const replyToPost = async (req, res) => {
     const userId = req.user._id;
     const userProfilePic = req.user.profilePic;
     const username = req.user.username;
+    let imgUrl = null;
+
+    // Log để kiểm tra
+    console.log("Request files:", req.files);
+    console.log("Request body:", req.body);
+
+    // Thêm validation độ dài text
+    if (text.length > 500) {
+      return res.status(400).json({ error: "Reply text must be less than 500 characters" });
+    }
 
     if (!text) {
       return res.status(400).json({ error: "Text field is required" });
@@ -201,37 +212,114 @@ const replyToPost = async (req, res) => {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    const reply = { userId, text, userProfilePic, username };
+    // Xử lý ảnh nếu có
+    if (req.files && req.files["img"] && req.files["img"][0]) {
+      try {
+        const imgFile = req.files["img"][0];
+        const imgUpload = await cloudinary.uploader.upload(`data:${imgFile.mimetype};base64,${imgFile.buffer.toString("base64")}`, {
+          resource_type: "image",
+          folder: "replies",
+        });
+        imgUrl = imgUpload.secure_url;
+        console.log("Uploaded image URL:", imgUrl); // Log URL ảnh sau khi upload
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        return res.status(500).json({ error: "Error uploading image" });
+      }
+    }
 
+    // Tạo reply mới với ảnh
+    const reply = {
+      userId,
+      text,
+      img: imgUrl, // Đảm bảo imgUrl được gán vào đây
+      userProfilePic,
+      username,
+      createdAt: new Date(),
+    };
+
+    console.log("New reply object:", reply); // Log reply object trước khi lưu
+
+    // Thêm reply vào post
     post.replies.push(reply);
     await post.save();
 
+    // Log reply sau khi lưu
+    console.log("Saved reply:", post.replies[post.replies.length - 1]);
+
     res.status(200).json(reply);
   } catch (err) {
+    console.error("Error in replyToPost:", err);
     res.status(500).json({ error: err.message });
+  }
+};
+
+const deleteReply = async (req, res) => {
+  try {
+    const { postId, replyId } = req.params;
+    const userId = req.user._id;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    // Tìm reply cần xóa
+    const replyIndex = post.replies.findIndex((reply) => reply._id.toString() === replyId && reply.userId.toString() === userId.toString());
+
+    if (replyIndex === -1) {
+      return res.status(403).json({ error: "Reply not found or you don't have permission to delete" });
+    }
+
+    // Xóa reply
+    post.replies.splice(replyIndex, 1);
+    await post.save();
+
+    res.status(200).json({ message: "Reply deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
 const repostPost = async (req, res) => {
   try {
-    const postId = req.params.id;
-    const userId = req.user._id;
+    const postId = req.params.id; // ID bài viết gốc
+    const userId = req.user._id; // ID người dùng từ token
 
-    const post = await Post.findById(postId);
-    if (!post) return res.status(404).json({ error: "Post not found" });
-
-    if (post.reposts.includes(userId)) {
-      post.reposts = post.reposts.filter((id) => id.toString() !== userId.toString());
-      await post.save();
-      return res.status(200).json({ message: "Repost removed", post });
+    // Tìm bài viết gốc
+    const originalPost = await Post.findById(postId);
+    if (!originalPost) {
+      return res.status(404).json({ error: "Post not found" });
     }
 
-    post.reposts.push(userId);
-    await post.save();
+    // Kiểm tra nếu người dùng đã repost
+    const hasReposted = originalPost.reposts.includes(userId);
 
-    res.status(200).json({ message: "Post reposted", post });
+    if (hasReposted) {
+      // Nếu đã repost, thì gỡ repost
+      originalPost.reposts = originalPost.reposts.filter((id) => id.toString() !== userId.toString());
+      await originalPost.save();
+      return res.status(200).json({ message: "Repost removed", post: originalPost });
+    }
+
+    // Nếu chưa repost, thêm vào danh sách repost
+    originalPost.reposts.push(userId);
+
+    // Tạo một bài viết mới (nếu cần lưu repost như bài viết riêng)
+    const repost = await Post.create({
+      content: originalPost.content, // Copy nội dung từ bài viết gốc
+      postedBy: userId, // Gán người dùng đã repost
+      originalPost: postId, // Gắn bài viết gốc
+      isRepost: true, // Đánh dấu bài viết là repost
+      repostedAt: new Date(), // Thời gian repost
+    });
+
+    await originalPost.save();
+
+    res.status(201).json({ message: "Post reposted", repost });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -295,4 +383,4 @@ const getUserPosts = async (req, res) => {
   }
 };
 
-export { verifyUserOwnership, createPost, deletePost, getPost, likeUnlikePost, replyToPost, repostPost, sharePost, getFeedPosts, getUserPosts, upload, uploadVideoBlob };
+export { verifyUserOwnership, createPost, deletePost, getPost, likeUnlikePost, replyToPost, deleteReply, repostPost, sharePost, getFeedPosts, getUserPosts, upload, uploadVideoBlob };

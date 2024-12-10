@@ -25,15 +25,29 @@ const PostPage = () => {
 
   useEffect(() => {
     const getPost = async () => {
-      setPosts([]);
       try {
         const res = await fetch(`/api/posts/${pid}`);
         const data = await res.json();
+        if (!res.ok) {
+          throw new Error("Failed to fetch post");
+        }
         if (data.error) {
           showToast("Error", data.error, "error");
           return;
         }
-        setPosts([data]);
+        // Thay đổi cách cập nhật posts
+        setPosts((prevPosts) => {
+          // Kiểm tra xem post đã tồn tại trong state chưa
+          const existingPostIndex = prevPosts.findIndex((p) => p._id === data._id);
+          if (existingPostIndex !== -1) {
+            // Nếu đã tồn tại, cập nhật post đó
+            const updatedPosts = [...prevPosts];
+            updatedPosts[existingPostIndex] = data;
+            return updatedPosts;
+          }
+          // Nếu chưa tồn tại, thêm vào đầu danh sách
+          return [data, ...prevPosts];
+        });
       } catch (error) {
         showToast("Error", error.message, "error");
       }
@@ -138,12 +152,17 @@ const PostPage = () => {
             <strong>Location:</strong> {location}
           </Text>
         )}
-        <Flex gap={3} my={3}>
-          <Actions post={currentPost} />
+        <Flex gap={3} my={1}>
+          <Actions post={currentPost} showReplies={true} />
         </Flex>
 
         <Divider my={4} />
 
+        {currentPost.replies?.map((reply, index) => (
+          <Comment key={reply._id || `reply-${index}`} reply={reply} lastReply={index === currentPost.replies.length - 1} />
+        ))}
+
+        <Divider my={4} />
         <Flex justifyContent={"space-between"}>
           <Flex gap={2} alignItems={"center"}>
             <Text fontSize={"2xl"}>👋</Text>
@@ -151,11 +170,6 @@ const PostPage = () => {
           </Flex>
           <Button>Get</Button>
         </Flex>
-
-        <Divider my={4} />
-        {currentPost.replies?.map((reply) => (
-          <Comment key={reply._id} reply={reply} lastReply={reply._id === currentPost.replies[currentPost.replies.length - 1]._id} />
-        ))}
       </Box>
     </Box>
   );
