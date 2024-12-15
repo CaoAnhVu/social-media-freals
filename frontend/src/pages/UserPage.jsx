@@ -77,7 +77,7 @@ const UserPage = () => {
 
         <Box
           bg={colorMode === "dark" ? "#181818" : "white"}
-          w={{ base: "640px", md: "900px", lg: "640px" }}
+          w={{ base: "660px", md: "900px", lg: "660px" }}
           mx="auto"
           border="1px solid rgba(128, 128, 128, 0.5)"
           borderRadius="20px"

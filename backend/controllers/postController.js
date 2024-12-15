@@ -27,62 +27,52 @@ const uploadVideoBlob = async (videoBuffer) => {
 const createPost = async (req, res) => {
   try {
     const { postedBy, text, location } = req.body;
-    let videoUrl, imgUrl;
+    let imgUrls = [];
 
-    // Kiểm tra thông tin bắt buộc
-    if (!postedBy || !text) {
-      return res.status(400).json({ error: "postedBy and text fields are required" });
-    }
+    console.log("Files received:", req.files);
 
-    // Kiểm tra độ dài văn bản
-    const maxLength = 500;
-    if (text.length > maxLength) {
-      return res.status(400).json({ error: `Text must be less than ${maxLength} characters` });
-    }
+    // Xử lý nhiều ảnh
+    if (req.files && req.files["img"]) {
+      const imgFiles = Array.isArray(req.files["img"]) ? req.files["img"] : [req.files["img"]];
+      console.log("Processing images:", imgFiles.length);
 
-    // Chuyển chuỗi location thành đối tượng
-    let parsedLocation;
-    try {
-      parsedLocation = location ? JSON.parse(location) : null; // Chỉ parse nếu location có dữ liệu
-    } catch (error) {
-      return res.status(400).json({ error: "Invalid location data" });
-    }
-
-    if (parsedLocation && !Array.isArray(parsedLocation.coordinates)) {
-      return res.status(400).json({ error: "Coordinates must be an array" });
-    }
-
-    // Xử lý ảnh
-    if (req.files["img"]) {
-      const imgFile = req.files["img"][0];
-      const imgUpload = await cloudinary.uploader.upload(`data:${imgFile.mimetype};base64,${imgFile.buffer.toString("base64")}`, {
-        resource_type: "image",
+      // Upload tất cả các ảnh
+      const uploadPromises = imgFiles.map(async (imgFile) => {
+        try {
+          const imgUpload = await cloudinary.uploader.upload(`data:${imgFile.mimetype};base64,${imgFile.buffer.toString("base64")}`, {
+            resource_type: "image",
+          });
+          console.log("Uploaded image:", imgUpload.secure_url);
+          return imgUpload.secure_url;
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          throw error;
+        }
       });
-      imgUrl = imgUpload.secure_url;
+
+      imgUrls = await Promise.all(uploadPromises);
+      console.log("All uploaded image URLs:", imgUrls);
     }
 
-    // Xử lý video
-    if (req.files["video"]) {
-      const videoFile = req.files["video"][0];
-      const videoUpload = await cloudinary.uploader.upload(`data:${videoFile.mimetype};base64,${videoFile.buffer.toString("base64")}`, {
-        resource_type: "video",
-      });
-      videoUrl = videoUpload.secure_url;
-    }
-
-    // Tạo bài đăng mới
+    // Tạo bài đăng mới với mảng ảnh
     const newPost = new Post({
       postedBy,
       text,
-      img: imgUrl,
-      video: videoUrl,
-      location: parsedLocation || null,
+      img: imgUrls,
+      location: location ? JSON.parse(location) : null,
+    });
+
+    console.log("New post data:", {
+      postedBy,
+      text,
+      imgUrls,
+      location,
     });
 
     await newPost.save();
-
     res.status(201).json(newPost);
   } catch (err) {
+    console.error("Error in createPost:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -124,15 +114,17 @@ const deletePost = [
       }
 
       // Xóa ảnh từ Cloudinary (nếu có)
-      if (post.img) {
-        const imgId = post.img.split("/").pop().split(".")[0];
-        try {
-          // Kiểm tra xem ảnh có tồn tại trên Cloudinary không
-          await cloudinary.uploader.destroy(imgId);
-        } catch (error) {
-          console.error("Failed to delete image:", error);
-          return res.status(500).json({ error: "Failed to delete image from Cloudinary" });
-        }
+      if (post.img && Array.isArray(post.img)) {
+        // Xóa tất cả các ảnh từ Cloudinary
+        const deletePromises = post.img.map(async (imgUrl) => {
+          const imgId = imgUrl.split("/").pop().split(".")[0];
+          try {
+            await cloudinary.uploader.destroy(imgId);
+          } catch (error) {
+            console.error("Failed to delete image:", error);
+          }
+        });
+        await Promise.all(deletePromises);
       }
 
       // Xóa video từ Cloudinary (nếu có)

@@ -1,6 +1,6 @@
 import { Avatar } from "@chakra-ui/avatar";
 import { Image } from "@chakra-ui/image";
-import { Box, Flex, Text, Skeleton, Spinner } from "@chakra-ui/react";
+import { Box, Flex, Text, Skeleton, Spinner, Divider } from "@chakra-ui/react";
 import { useColorMode } from "@chakra-ui/react";
 import { Link, useNavigate } from "react-router-dom";
 import Actions from "./Actions";
@@ -12,6 +12,8 @@ import { MdOutlineCommentsDisabled } from "react-icons/md";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import postsAtom from "../atoms/postsAtom";
+// import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+// import { IconButton } from "@chakra-ui/react";
 
 const Post = ({ post, postedBy }) => {
   const [user, setUser] = useState(null);
@@ -22,6 +24,7 @@ const Post = ({ post, postedBy }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const location = post.location && post.location.name ? post.location.name : null;
   const coordinates = post?.location?.coordinates?.length ? post.location.coordinates.join(", ") : "No coordinates available";
@@ -30,16 +33,16 @@ const Post = ({ post, postedBy }) => {
     const getUser = async () => {
       try {
         setLoading(true);
-        const res = await fetch("/api/users/profile/" + postedBy);
+        const res = await fetch(`/api/users/profile/${postedBy}`);
         const data = await res.json();
         if (data.error) {
           showToast("Error", data.error, "error");
-          setError(data.error);
           return;
         }
         setUser(data);
       } catch (error) {
         showToast("Error", error.message, "error");
+        setUser(null);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -47,6 +50,22 @@ const Post = ({ post, postedBy }) => {
     };
     getUser();
   }, [postedBy, showToast]);
+
+  useEffect(() => {
+    const handleScroll = (e) => {
+      const container = e.target;
+      const scrollPosition = container.scrollLeft;
+      const imageWidth = container.offsetWidth;
+      const newIndex = Math.round(scrollPosition / imageWidth);
+      setCurrentImageIndex(newIndex);
+    };
+
+    const imageContainer = document.querySelector(".image-container");
+    if (imageContainer) {
+      imageContainer.addEventListener("scroll", handleScroll);
+      return () => imageContainer.removeEventListener("scroll", handleScroll);
+    }
+  }, []);
 
   const handleDeletePost = async (e) => {
     try {
@@ -105,6 +124,7 @@ const Post = ({ post, postedBy }) => {
                 <MdOutlineCommentsDisabled />
               </Text>
             )}
+
             {post.replies[0] && <Avatar size="xs" name="John doe" src={post.replies[0].userProfilePic} position={"absolute"} top={"0px"} left="15px" padding={"2px"} />}
 
             {post.replies[1] && <Avatar size="xs" name="John doe" src={post.replies[1].userProfilePic} position={"absolute"} bottom={"0px"} right="-5px" padding={"2px"} />}
@@ -145,8 +165,66 @@ const Post = ({ post, postedBy }) => {
 
           {/* Hiển thị hình ảnh */}
           {post.img && (
-            <Box borderRadius={6} overflow={"hidden"} border={"1px solid"} borderColor={"gray.light"}>
-              <Image src={post.img} w={"full"} />
+            <Box borderRadius={12} overflow="hidden" border={"1px solid"} borderColor={"gray.light"} position="relative" display="inline-block">
+              <Flex
+                className="image-container"
+                position="relative"
+                overflowX="auto"
+                scrollBehavior="smooth"
+                css={{
+                  "&::-webkit-scrollbar": {
+                    display: "none",
+                  },
+                  scrollSnapType: "x mandatory",
+                  cursor: "grab",
+                  "&:active": {
+                    cursor: "grabbing",
+                  },
+                }}
+                onMouseDown={(e) => {
+                  const ele = e.currentTarget;
+                  const startX = e.pageX - ele.offsetLeft;
+                  const scrollLeft = ele.scrollLeft;
+
+                  const handleMouseMove = (e) => {
+                    const x = e.pageX - ele.offsetLeft;
+                    const walk = (x - startX) * 2;
+                    ele.scrollLeft = scrollLeft - walk;
+                  };
+
+                  const handleMouseUp = () => {
+                    document.removeEventListener("mousemove", handleMouseMove);
+                    document.removeEventListener("mouseup", handleMouseUp);
+                    ele.style.cursor = "grab";
+                  };
+
+                  document.addEventListener("mousemove", handleMouseMove);
+                  document.addEventListener("mouseup", handleMouseUp);
+                  ele.style.cursor = "grabbing";
+                }}
+                onScroll={(e) => {
+                  const container = e.target;
+                  const scrollPosition = container.scrollLeft;
+                  const imageWidth = container.offsetWidth;
+                  const newIndex = Math.round(scrollPosition / imageWidth);
+                  setCurrentImageIndex(newIndex);
+                }}
+              >
+                {Array.isArray(post.img) ? (
+                  post.img.map((image, index) => (
+                    <Box key={index} minW="100%" position="relative">
+                      <Image src={image} width="100%" h="400px" flexShrink={0} scrollSnapAlign="start" objectFit="cover" transition="transform 0.3s ease" />
+                      {index === currentImageIndex && (
+                        <Text position="absolute" right="8px" bottom="8px" bg="blackAlpha.700" color="white" px={2} py={1} borderRadius="full" fontSize="sm" zIndex={1}>
+                          {currentImageIndex + 1}/{post.img.length}
+                        </Text>
+                      )}
+                    </Box>
+                  ))
+                ) : (
+                  <Image src={post.img} width="100%" h="400px" flexShrink={0} objectFit="cover" transition="transform 0.3s ease" />
+                )}
+              </Flex>
             </Box>
           )}
 
@@ -189,6 +267,7 @@ const Post = ({ post, postedBy }) => {
           </Flex>
         </Flex>
       </Flex>
+      <Divider my={4} borderColor="gray.light" opacity={1} />
     </Link>
   );
 };

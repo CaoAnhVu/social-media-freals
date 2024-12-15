@@ -12,20 +12,20 @@ import UpdateProfilePage from "./pages/UpdateProfilePage";
 import CreatePost from "./components/CreatePost";
 import ChatPage from "./pages/ChatPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import LogoutButton from "./components/LogoutButton";
+// import LogoutButton from "./components/LogoutButton";
+
 function App() {
   const user = useRecoilValue(userAtom);
   const { pathname } = useLocation();
   return (
     <Box position={"relative"} w="full">
-      <Container maxW={pathname === "/" ? { base: "620px", md: "900px" } : "620px"}>
+      <Container maxW={pathname === "/" ? { base: "630px", md: "1100px" } : "630px"}>
         <Header />
         <Sidebar />
         <Routes>
           <Route path="/" element={user ? <HomePage /> : <Navigate to="/auth" />} />
           <Route path="/auth" element={!user ? <AuthPage /> : <Navigate to="/" />} />
           <Route path="/update" element={user ? <UpdateProfilePage /> : <Navigate to="/auth" />} />
-
           <Route
             path="/:username"
             element={
@@ -39,11 +39,12 @@ function App() {
               )
             }
           />
+          <Route path="/posts/:pid" element={<PostPage />} />
           <Route path="/:username/post/:pid" element={<PostPage />} />
           <Route path="/chat" element={user ? <ChatPage /> : <Navigate to={"/auth"} />} />
           <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to={"/auth"} />} />
         </Routes>
-        {user && <LogoutButton />}
+        {/* {user && <LogoutButton />} */}
         {user && <CreatePost />}
       </Container>
     </Box>

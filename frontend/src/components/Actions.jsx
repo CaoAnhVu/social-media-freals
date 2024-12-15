@@ -1,23 +1,22 @@
 import { Box, Flex, FormControl, Image, Text, useDisclosure, Avatar, useColorModeValue, Popover, PopoverTrigger, PopoverContent, PopoverBody, Button, IconButton, Tooltip } from "@chakra-ui/react";
-import Comment from "./Comment";
-import { useState, useRef } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
-import userAtom from "../atoms/userAtom";
-import useShowToast from "../hooks/useShowToast";
-import postsAtom from "../atoms/postsAtom";
-import { useNavigate } from "react-router-dom";
-import { MentionsInput, Mention } from "react-mentions";
-import { CloseIcon } from "@chakra-ui/icons";
 import { BsSendFill, BsEmojiSmile, BsImage, BsTypeBold, BsTypeItalic } from "react-icons/bs";
+import { MentionsInput, Mention } from "react-mentions";
+import { useRecoilState, useRecoilValue } from "recoil";
+import useShowToast from "../hooks/useShowToast";
+import { CloseIcon } from "@chakra-ui/icons";
 import ReactMarkdown from "react-markdown";
+import postsAtom from "../atoms/postsAtom";
+import userAtom from "../atoms/userAtom";
+import { useState, useRef } from "react";
 import Picker from "@emoji-mart/react";
-const Actions = ({ post, showReplies = false }) => {
+import Comment from "./Comment";
+
+const Actions = ({ post, showReplies = false, onReplyAdded }) => {
   const user = useRecoilValue(userAtom);
   const [liked, setLiked] = useState(post.likes.includes(user?._id));
   const [posts, setPosts] = useRecoilState(postsAtom);
   const [isReplying, setIsReplying] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
-  const navigate = useNavigate();
   const [imgUrl, setImgUrl] = useState(null);
   const imageRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -31,19 +30,7 @@ const Actions = ({ post, showReplies = false }) => {
   });
   const [reply, setReply] = useState("");
   const showToast = useShowToast();
-  const { onOpen, onClose } = useDisclosure();
-
-  // Hàm xử lý click vào icon reply
-  const handleCommentClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!showReplies && post?.postedBy?.username) {
-      navigate(`/${post.postedBy.username}/post/${post._id}`);
-    } else {
-      onOpen();
-    }
-  };
+  const { onClose } = useDisclosure();
 
   // Xử lý upload ảnh
   const handleImageChange = (e) => {
@@ -91,7 +78,7 @@ const Actions = ({ post, showReplies = false }) => {
     setIsLiking(true);
     try {
       const res = await fetch("/api/posts/like/" + post._id, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -132,18 +119,16 @@ const Actions = ({ post, showReplies = false }) => {
       setIsLiking(false);
     }
   };
-
   const handleReply = async () => {
     if (!user) return showToast("Error", "You must be logged in to reply to a post", "error");
     if (isReplying) return;
+    setIsReplying(true);
 
     try {
       const formData = new FormData();
       formData.append("text", getFormattedText(reply));
 
-      // Nếu có ảnh, thêm vào FormData
       if (imgUrl) {
-        // Chuyển base64 string thành file
         const response = await fetch(imgUrl);
         const blob = await response.blob();
         const file = new File([blob], "image.jpg", { type: "image/jpeg" });
@@ -151,8 +136,10 @@ const Actions = ({ post, showReplies = false }) => {
       }
 
       const res = await fetch(`/api/posts/reply/${post._id}`, {
-        method: "PATCH",
-        body: formData, // Gửi FormData thay vì JSON
+        method: "PUT",
+        // Không cần set Content-Type header khi gửi FormData
+        // browser tự động set multipart/form-data
+        body: formData,
       });
 
       if (!res.ok) {
@@ -161,22 +148,36 @@ const Actions = ({ post, showReplies = false }) => {
       }
 
       const data = await res.json();
-      console.log("Reply response:", data); // Log phản hồi từ server
+      console.log("Reply response:", data); // Để debug
 
-      if (data.error) {
-        showToast("Error", data.error, "error");
-        return;
-      }
+      // Tạo reply mới với đầy đủ thông tin
+      const newReply = {
+        _id: data._id || `temp-${Date.now()}`, // Fallback ID nếu server không trả về
+        text: getFormattedText(reply),
+        img: data.img,
+        userId: user._id,
+        username: user.username,
+        userProfilePic: user.profilePic,
+        createdAt: new Date().toISOString(),
+      };
 
-      // Cập nhật UI
-      const updatedPosts = posts.map((p) => {
-        if (p._id === post._id) {
-          return { ...p, replies: [...p.replies, data] };
-        }
-        return p;
+      // Cập nhật state
+      setPosts((prevPosts) => {
+        return prevPosts.map((p) => {
+          if (p._id === post._id) {
+            return {
+              ...p,
+              replies: [...(p.replies || []), newReply],
+            };
+          }
+          return p;
+        });
       });
 
-      setPosts(updatedPosts);
+      if (onReplyAdded) {
+        onReplyAdded(newReply);
+      }
+
       showToast("Success", "Reply posted successfully", "success");
       setReply("");
       setImgUrl(null);
@@ -194,48 +195,59 @@ const Actions = ({ post, showReplies = false }) => {
     if (!user) return showToast("Error", "You must be logged in", "error");
 
     try {
+      // Log để debug
+      console.log("Deleting reply:", replyId);
+      console.log("Post ID:", post._id);
+      console.log("Current user:", user._id);
+
       const res = await fetch(`/api/posts/reply/${post._id}/${replyId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Thêm token nếu cần
         },
       });
 
       const data = await res.json();
 
-      if (data.error) {
-        showToast("Error", data.error, "error");
-        return;
+      if (!res.ok) {
+        throw new Error(data.error || "Error deleting reply");
       }
 
       // Cập nhật UI sau khi xóa thành công
-      const updatedPosts = posts.map((p) => {
-        if (p._id === post._id) {
-          return {
-            ...p,
-            replies: p.replies.filter((reply) => reply._id !== replyId),
-          };
-        }
-        return p;
+      setPosts((prevPosts) => {
+        return prevPosts.map((p) => {
+          if (p._id === post._id) {
+            return {
+              ...p,
+              replies: p.replies.filter((reply) => reply._id !== replyId),
+            };
+          }
+          return p;
+        });
       });
 
-      setPosts(updatedPosts);
       showToast("Success", "Reply deleted successfully", "success");
     } catch (error) {
+      console.error("Delete reply error:", error);
       showToast("Error", error.message, "error");
     }
   };
 
+  // Hàm đăng lại bài viết
   const handleRepost = async () => {
     if (!user) return showToast("Error", "You must be logged in to repost", "error");
 
     try {
       const res = await fetch("/api/posts/repost/" + post._id, {
-        method: "PATCH",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId: user._id }),
+        body: JSON.stringify({
+          userId: user._id,
+          username: user.username, // Thêm username vào request
+        }),
       });
 
       const responseText = await res.text();
@@ -249,12 +261,20 @@ const Actions = ({ post, showReplies = false }) => {
       const repost = JSON.parse(responseText);
       console.log("Repost API Response Data:", repost);
 
-      // Kiểm tra message từ server để xác định hành động
+      // Cập nhật state với thông tin repost mới
       if (repost.message === "Post reposted successfully") {
-        setPosts([repost.post, ...posts]); // Thêm bài repost vào đầu danh sách
+        // Thêm thông tin người repost vào bài viết
+        const repostedPost = {
+          ...repost.post,
+          repostedBy: {
+            _id: user._id,
+            username: user.username,
+          },
+        };
+        setPosts([repostedPost, ...posts]);
         showToast("Success", "Post reposted successfully", "success");
       } else if (repost.message === "Repost removed") {
-        // Cập nhật lại danh sách posts bằng cách loại bỏ bài repost
+        // Xóa bài repost khỏi danh sách
         const updatedPosts = posts.filter((p) => p._id !== repost.post._id);
         setPosts(updatedPosts);
         showToast("Success", "Repost removed successfully", "success");
@@ -264,6 +284,7 @@ const Actions = ({ post, showReplies = false }) => {
     }
   };
 
+  // Hàm chia sẻ bài viết
   const handleShare = () => {
     const postUrl = `${window.location.origin}/posts/${post._id}`;
     navigator.clipboard.writeText(postUrl);
@@ -272,7 +293,7 @@ const Actions = ({ post, showReplies = false }) => {
 
   return (
     <Flex flexDirection="column" w="full">
-      <Flex maxWidth={"100%"} gap={3} my={2} onClick={(e) => e.preventDefault()}>
+      <Flex maxWidth={"100%"} gap={12} my={2} onClick={(e) => e.preventDefault()}>
         <svg
           aria-label="Like"
           cursor={"pointer"}
@@ -291,7 +312,7 @@ const Actions = ({ post, showReplies = false }) => {
           ></path>
         </svg>
 
-        <svg aria-label="Comment" cursor={"pointer"} color="" fill="" height="20" role="img" viewBox="0 0 24 24" width="20" onClick={handleCommentClick}>
+        <svg aria-label="Comment" cursor={"pointer"} color="" fill="" height="20" role="img" viewBox="0 0 24 24" width="20">
           <title>Comment</title>
           <path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2"></path>
         </svg>
@@ -453,9 +474,11 @@ const Actions = ({ post, showReplies = false }) => {
             </Box>
             {/* Danh sách replies */}
             <Box mt={4}>
-              {post.replies.map((reply, index) => (
-                <Comment key={reply._id} reply={reply} lastReply={index === post.replies.length - 1} onDeleteReply={handleDeleteReply} />
-              ))}
+              {post.replies.map((reply, index) => {
+                // Tạo fallback key nếu reply._id không tồn tại
+                const uniqueKey = reply._id || `reply-${index}-${Date.now()}`;
+                return <Comment key={uniqueKey} reply={reply} lastReply={index === post.replies.length - 1} onDeleteReply={handleDeleteReply} />;
+              })}
             </Box>
           </Flex>
         </Box>

@@ -10,23 +10,24 @@ const uploadMiddleware = multer({ storage: storage });
 // Endpoint để nhận video upload
 router.post("/uploadVideo", uploadMiddleware.single("video"), uploadVideoBlob);
 
-router.get("/user/:username", getUserPosts);
-router.get("/feed", protectRoute, getFeedPosts);
-router.get("/:id", getPost);
 router.post(
   "/create",
   uploadMiddleware.fields([
-    { name: "img", maxCount: 1 },
-    { name: "video", maxCount: 1 },
+    { name: "img", maxCount: 10 },
+    { name: "video", maxCount: 5 },
   ]),
   protectRoute,
   createPost
 );
+
+router.get("/user/:username", getUserPosts);
+router.get("/feed", protectRoute, getFeedPosts);
+router.get("/:id", getPost);
 router.delete("/:id", protectRoute, deletePost);
-router.patch("/like/:id", protectRoute, likeUnlikePost);
-router.patch("/reply/:id", protectRoute, uploadMiddleware.fields([{ name: "img", maxCount: 1 }]), replyToPost);
+router.put("/like/:id", protectRoute, likeUnlikePost);
+router.put("/reply/:id", protectRoute, uploadMiddleware.fields([{ name: "img", maxCount: 1 }]), replyToPost);
 router.delete("/reply/:postId/:replyId", protectRoute, deleteReply);
-router.patch("/repost/:id", protectRoute, repostPost);
-router.patch("/share/:id", protectRoute, sharePost);
+router.post("/repost/:id", protectRoute, repostPost);
+router.put("/share/:id", protectRoute, sharePost);
 
 export default router;

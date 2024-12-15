@@ -21,12 +21,13 @@ import {
   PopoverContent,
   PopoverBody,
   useToast,
+  Box,
 } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
 import { useRef, useState } from "react";
 import Picker from "@emoji-mart/react";
 import { BsFillImageFill, BsEmojiSmile, BsCameraVideo, BsGeoAlt } from "react-icons/bs";
-import { usePreviewImg, usePreviewVideo } from "../hooks/usePreviewImg";
+import { usePreviewVideo } from "../hooks/usePreviewImg";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
@@ -38,7 +39,7 @@ const MAX_CHAR = 500;
 const CreatePost = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [postText, setPostText] = useState("");
-  const { handleImageChange, imgUrl, setImgUrl } = usePreviewImg();
+  const [imgUrls, setImgUrls] = useState([]);
   const { handleVideoChange, videoUrl, setVideoUrl } = usePreviewVideo();
   const imageRef = useRef(null);
   const videoRef = useRef(null);
@@ -105,50 +106,67 @@ const CreatePost = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length + imgUrls.length > 4) {
+      showToast("Error", "Maximum 4 images allowed", "error");
+      return;
+    }
+    setImgUrls((prev) => [...prev, ...files]);
+  };
+
+  const removeImage = (index) => {
+    setImgUrls((prev) => prev.filter((_, i) => i !== index));
+    if (imageRef.current) {
+      imageRef.current.value = "";
+    }
+  };
+
   const handleCreatePost = async () => {
     setLoading(true);
     try {
-      if (!postText && !imgUrl && !videoUrl) {
-        showToast("Error", "Please provide text, an image, or a video", "error");
+      if (!postText && imgUrls.length === 0 && !videoUrl) {
+        showToast("Error", "Please provide text, images, or a video", "error");
         return;
       }
 
-      // Create FormData object
       const formData = new FormData();
       formData.append("postedBy", user._id);
       formData.append("text", postText || "");
 
-      // Append the image file if it's selected
-      if (imageRef.current?.files[0]) {
-        formData.append("img", imageRef.current.files[0]);
+      if (imgUrls.length > 0) {
+        imgUrls.forEach((file) => {
+          formData.append("img", file);
+        });
       }
 
-      // Append the video file if it's selected
       if (videoRef.current?.files[0]) {
         formData.append("video", videoRef.current.files[0]);
       }
 
-      // Append location if available
       if (location && location.name && location.coordinates) {
-        formData.append("location", JSON.stringify(location)); // Ensure it's properly serialized
+        formData.append("location", JSON.stringify(location));
       }
 
-      for (var pair of formData.entries()) {
-        console.log(pair[0] + ", " + pair[1]);
+      console.log("Form data entries:");
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
       }
 
-      // Send FormData to the API
       const res = await fetch("/api/posts/create", {
         method: "POST",
-        body: formData, // Use FormData directly as the body
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formData,
       });
 
-      const data = await res.json();
-      if (data.error) {
-        showToast("Error", data.error, "error");
-        return;
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Error creating post");
       }
 
+      const data = await res.json();
       showToast("Success", "Post created successfully", "success");
       if (username === user.username) {
         setPosts([data, ...posts]);
@@ -156,7 +174,7 @@ const CreatePost = () => {
 
       onClose();
       setPostText("");
-      setImgUrl("");
+      setImgUrls([]);
       setVideoUrl("");
       setLocationName("");
       setLocationCoordinates({ latitude: "", longitude: "" });
@@ -227,14 +245,18 @@ const CreatePost = () => {
                   color={useColorModeValue("teal.500", "teal.300")}
                   onClick={onOpenLocationModal} // Open the modal when clicked
                 />
-                <Input type="file" hidden ref={imageRef} onChange={handleImageChange} accept="image/*" />
+                <Input type="file" hidden ref={imageRef} onChange={handleImageChange} accept="image/*" multiple />
                 <Input type="file" hidden ref={videoRef} onChange={handleVideoChange} accept="video/*" />
               </Flex>
             </FormControl>
-            {imgUrl && (
-              <Flex position="relative" mt={2} mb={4}>
-                <Image src={imgUrl} alt="Selected preview" borderRadius="md" shadow="md" maxW={"100%"} objectFit="cover" />
-                <CloseButton size="sm" position="absolute" top={1} right={1} bg="red.600" color="white" onClick={() => setImgUrl("")} />
+            {imgUrls.length > 0 && (
+              <Flex position="relative" mt={2} mb={4} gap={2} flexWrap="wrap">
+                {imgUrls.map((file, index) => (
+                  <Box key={index} position="relative" width={imgUrls.length === 1 ? "100%" : "48%"}>
+                    <Image src={URL.createObjectURL(file)} alt={`Selected preview ${index + 1}`} borderRadius="md" shadow="md" w="100%" h="200px" objectFit="cover" />
+                    <CloseButton size="sm" position="absolute" top={1} right={1} bg="red.600" color="white" onClick={() => removeImage(index)} />
+                  </Box>
+                ))}
               </Flex>
             )}
             {videoUrl && (

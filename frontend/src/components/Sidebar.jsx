@@ -2,6 +2,7 @@ import { Box, Flex, Link, IconButton, useColorMode, Text } from "@chakra-ui/reac
 import { AiFillHome } from "react-icons/ai";
 import { RxAvatar } from "react-icons/rx";
 import { BsFillChatQuoteFill } from "react-icons/bs";
+import { GrGroup } from "react-icons/gr";
 import { MdOutlineSettings } from "react-icons/md";
 import { FiLogOut } from "react-icons/fi";
 import { CiLogin } from "react-icons/ci";
@@ -65,6 +66,14 @@ const Sidebar = () => {
               </Text>
             </Flex>
           </Link>
+          <Link _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }} as={RouterLink} to="/groups" display="flex" alignItems="center">
+            <Flex alignItems="center">
+              <IconButton icon={<GrGroup />} aria-label="Groups" size="lg" />
+              <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} opacity={0} transition="opacity 0.3s ease" _groupHover={{ opacity: 1 }}>
+                Community
+              </Text>
+            </Flex>
+          </Link>
           <Link _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }} as={RouterLink} to="/settings" display="flex" alignItems="center">
             <Flex alignItems="center">
               <IconButton icon={<MdOutlineSettings />} aria-label="Settings" size="lg" />
@@ -73,8 +82,19 @@ const Sidebar = () => {
               </Text>
             </Flex>
           </Link>
-          <Flex alignItems="center" _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }} onClick={logout}>
-            <IconButton icon={<FiLogOut />} aria-label="Logout" size="lg" />
+          <Flex
+            alignItems="center"
+            _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }}
+            onClick={async () => {
+              // Thêm xác nhận trước khi đăng xuất
+              if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+                await logout();
+                // Có thể thêm điều hướng về trang chủ sau khi đăng xuất
+                window.location.href = "/";
+              }
+            }}
+          >
+            <IconButton icon={<FiLogOut />} aria-label="Logout" size="lg" _hover={{ bg: "red.500", color: "white" }} />
             <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} opacity={0} transition="opacity 0.3s ease" _groupHover={{ opacity: 1 }}>
               Logout
             </Text>

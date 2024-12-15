@@ -13,6 +13,7 @@ const useLogout = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
       });
       const data = await res.json();
 
@@ -20,9 +21,11 @@ const useLogout = () => {
         showToast("Error", data.error, "error");
         return;
       }
+      // Xóa dữ liệu người dùng
 
       localStorage.removeItem("user-freals");
       setUser(null);
+      showToast("Thành công", "Đăng xuất thành công", "success");
     } catch (error) {
       showToast("Error", error, "error");
     }

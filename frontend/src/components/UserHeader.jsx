@@ -9,12 +9,17 @@ import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { Link as RouterLink } from "react-router-dom";
 import useFollowUnfollow from "../hooks/useFollowUnfollow";
+import { useState } from "react";
+// import UserPosts from "./UserPost";
+// import UserReplies from "./UserReplies";
+// import UserReposts from "./UserReposts";
 
 const UserHeader = ({ user }) => {
   const toast = useToast();
   const currentUser = useRecoilValue(userAtom); // logged in user
   const { handleFollowUnfollow, following, updating } = useFollowUnfollow(user);
   const { colorMode } = useColorMode();
+  const [selectedTab, setSelectedTab] = useState("posts");
 
   const copyURL = async () => {
     try {
@@ -131,16 +136,61 @@ const UserHeader = ({ user }) => {
       </Flex>
 
       <Flex w={"full"}>
-        <Flex flex={1} borderBottom={colorMode === "dark" ? "2px solid white" : "3px solid black"} justifyContent={"center"} pb="3" cursor={"pointer"}>
-          <Text fontWeight={"bold"}> Post</Text>
+        <Flex
+          flex={1}
+          borderBottom={selectedTab === "posts" ? (colorMode === "dark" ? "2px solid white" : "3px solid black") : colorMode === "dark" ? "2px solid gray" : "3px solid lightgray"}
+          justifyContent={"center"}
+          pb="3"
+          cursor={"pointer"}
+          onClick={() => setSelectedTab("posts")}
+        >
+          <Text fontWeight={"bold"} color={selectedTab === "posts" ? "" : "gray.light"}>
+            Post
+          </Text>
         </Flex>
-        <Flex flex={1} borderBottom={colorMode === "dark" ? "2px solid gray" : "3px solid lightgray"} justifyContent={"center"} color={"gray.light"} pb="3" cursor={"pointer"}>
-          <Text fontWeight={"bold"}> Replies</Text>
+
+        <Flex
+          flex={1}
+          borderBottom={selectedTab === "replies" ? (colorMode === "dark" ? "2px solid white" : "3px solid black") : colorMode === "dark" ? "2px solid gray" : "3px solid lightgray"}
+          justifyContent={"center"}
+          pb="3"
+          cursor={"pointer"}
+          onClick={() => setSelectedTab("replies")}
+        >
+          <Text fontWeight={"bold"} color={selectedTab === "replies" ? "" : "gray.light"}>
+            Replies
+          </Text>
         </Flex>
-        <Flex flex={1} borderBottom={colorMode === "dark" ? "2px solid gray" : "3px solid lightgray"} justifyContent={"center"} color={"gray.light"} pb="3" cursor={"pointer"}>
-          <Text fontWeight={"bold"}> Reposts</Text>
+
+        <Flex
+          flex={1}
+          borderBottom={selectedTab === "reposts" ? (colorMode === "dark" ? "2px solid white" : "3px solid black") : colorMode === "dark" ? "2px solid gray" : "3px solid lightgray"}
+          justifyContent={"center"}
+          pb="3"
+          cursor={"pointer"}
+          onClick={() => setSelectedTab("reposts")}
+        >
+          <Text fontWeight={"bold"} color={selectedTab === "reposts" ? "" : "gray.light"}>
+            Reposts
+          </Text>
         </Flex>
       </Flex>
+
+      {/* Hiển thị nội dung tương ứng với tab được chọn */}
+      {/* {selectedTab === "posts" && (
+        // Hiển thị danh sách posts
+        <UserPosts posts={user.posts} />
+      )}
+
+      {selectedTab === "replies" && (
+        // Hiển thị danh sách replies
+        <UserReplies replies={user.replies} />
+      )}
+
+      {selectedTab === "reposts" && (
+        // Hiển thị danh sách reposts
+        <UserReposts reposts={user.reposts} />
+      )} */}
     </VStack>
   );
 };
