@@ -151,7 +151,7 @@ const Post = ({ post, postedBy }) => {
             </Flex>
             <Flex gap={4} alignItems={"center"}>
               <Skeleton isLoaded={!loading}>
-                <Text fontSize={"xs"} width={36} textAlign={"right"} color={"gray.light"}>
+                <Text fontSize={"sm"} width={36} textAlign={"right"} color={"gray.light"}>
                   {formatDistanceToNow(new Date(post.createdAt))} ago
                 </Text>
               </Skeleton>

@@ -193,7 +193,7 @@ const PostPage = () => {
             </Flex>
           </Flex>
           <Flex gap={4} alignItems={"center"}>
-            <Text fontSize={"xs"} width={36} textAlign={"right"} color={"gray.light"}>
+            <Text fontSize={"sm"} width={36} textAlign={"right"} color={"gray.light"}>
               {currentPost.createdAt ? formatDistanceToNow(new Date(currentPost.createdAt)) : "Unknown"} ago
             </Text>
 
