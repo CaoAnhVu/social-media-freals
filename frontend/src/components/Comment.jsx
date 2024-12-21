@@ -4,7 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
-import { useState, useMemo, memo } from "react";
+import { useState, memo } from "react";
 
 const Comment = ({ reply, lastReply, onDeleteReply }) => {
   const user = useRecoilValue(userAtom);
@@ -26,11 +26,6 @@ const Comment = ({ reply, lastReply, onDeleteReply }) => {
     }
   };
 
-  const timeAgo = useMemo(() => {
-    if (!reply?.createdAt) return "unknown time";
-    return formatDistanceToNow(new Date(reply.createdAt));
-  }, [reply?.createdAt]);
-
   if (!reply || !reply._id) {
     return null;
   }
@@ -43,37 +38,56 @@ const Comment = ({ reply, lastReply, onDeleteReply }) => {
 
           <Box flex="1">
             <Flex justifyContent={"space-between"} alignItems={"center"} mb={2}>
+              <Text fontSize="sm" fontWeight="bold" _hover={{ color: "blue.400" }} cursor="pointer">
+                {reply.username || "Unknown User"}
+              </Text>
               <Flex alignItems="center" gap={2}>
-                <Text fontSize="sm" fontWeight="bold" _hover={{ color: "blue.400" }} cursor="pointer">
-                  {reply.username || "Unknown User"}
-                </Text>
-                <Text fontSize="xs" color="gray.500">
-                  • {timeAgo} ago
-                </Text>
-              </Flex>
+                {/* Timeline */}
+                <Flex alignItems="center" gap={2} color="gray.500" whiteSpace="nowrap">
+                  <Text fontSize="sm">
+                    {new Date(reply.createdAt).toLocaleTimeString("vi-VN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
+                  <Text fontSize="sm">•</Text>
+                  <Text fontSize="sm">
+                    {new Date(reply.createdAt).toLocaleDateString("vi-VN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                  </Text>
+                  <Text fontSize="sm">•</Text>
+                  <Text fontSize="sm">{formatDistanceToNow(new Date(reply.createdAt))} ago</Text>
+                </Flex>
 
-              {user && reply.userId === user._id && (
-                <IconButton
-                  icon={<DeleteIcon />}
-                  size="sm"
-                  variant="ghost"
-                  colorScheme="red"
-                  isLoading={isDeleting}
-                  onClick={handleDelete}
-                  aria-label="Delete reply"
-                  opacity={0.7}
-                  _hover={{
-                    opacity: 1,
-                    bg: "red.50",
-                    color: "red.600",
-                  }}
-                />
-              )}
+                {/* Delete Icon */}
+                {user && reply.userId === user._id && (
+                  <IconButton
+                    icon={<DeleteIcon />}
+                    size="sm"
+                    variant="ghost"
+                    colorScheme="red"
+                    isLoading={isDeleting}
+                    onClick={handleDelete}
+                    aria-label="Delete reply"
+                    opacity={0.7}
+                    _hover={{
+                      opacity: 1,
+                      bg: "red.50",
+                      color: "red.600",
+                    }}
+                  />
+                )}
+              </Flex>
             </Flex>
 
             <Box fontSize="sm" mb={reply.img ? 3 : 0}>
               <ReactMarkdown>{reply.text}</ReactMarkdown>
             </Box>
+
+            {/* Image Section */}
 
             {reply.img && (
               <>

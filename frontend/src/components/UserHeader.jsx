@@ -10,9 +10,8 @@ import userAtom from "../atoms/userAtom";
 import { Link as RouterLink } from "react-router-dom";
 import useFollowUnfollow from "../hooks/useFollowUnfollow";
 import { useState } from "react";
-// import UserPosts from "./UserPost";
-// import UserReplies from "./UserReplies";
-// import UserReposts from "./UserReposts";
+import UserReplies from "./UserReplies";
+import UserReposts from "./UserReposts";
 
 const UserHeader = ({ user }) => {
   const toast = useToast();
@@ -175,22 +174,8 @@ const UserHeader = ({ user }) => {
           </Text>
         </Flex>
       </Flex>
-
-      {/* Hiển thị nội dung tương ứng với tab được chọn */}
-      {/* {selectedTab === "posts" && (
-        // Hiển thị danh sách posts
-        <UserPosts posts={user.posts} />
-      )}
-
-      {selectedTab === "replies" && (
-        // Hiển thị danh sách replies
-        <UserReplies replies={user.replies} />
-      )}
-
-      {selectedTab === "reposts" && (
-        // Hiển thị danh sách reposts
-        <UserReposts reposts={user.reposts} />
-      )} */}
+      {selectedTab === "replies" && <UserReplies username={user.username} />}
+      {selectedTab === "reposts" && <UserReposts username={user.username} />}
     </VStack>
   );
 };

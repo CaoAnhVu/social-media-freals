@@ -12,27 +12,18 @@ const postSchema = mongoose.Schema(
       maxLength: 500,
     },
     img: {
-      type: [String],
+      type: [String], // Mảng các URL hình ảnh
       default: [],
     },
     video: {
       type: String,
+      default: null,
     },
-    location: {
-      name: { type: String, default: null },
-      coordinates: {
-        type: [Number],
-        index: "2dsphere",
-        default: [],
-      },
-    },
-
     likes: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
       default: [],
     },
-
     replies: [
       {
         userId: {
@@ -44,53 +35,66 @@ const postSchema = mongoose.Schema(
           type: String,
           required: true,
         },
-        img: {
-          // Đảm bảo trường img tồn tại
-          type: String,
-        },
         userProfilePic: {
           type: String,
         },
         username: {
           type: String,
         },
+        img: {
+          type: String,
+        },
         createdAt: {
           type: Date,
-          default: Date.now,
+          default: Date.now, // Thêm timestamp cho replies
         },
       },
     ],
-
-    reposts: {
-      type: [mongoose.Schema.Types.ObjectId], // Danh sách người dùng đã repost bài viết
-      ref: "User",
-      default: [],
-    },
-
-    isRepost: {
-      type: Boolean,
-      default: false, // Đánh dấu bài viết là repost
-    },
     originalPost: {
-      type: mongoose.Schema.Types.ObjectId, // Bài viết gốc nếu là repost
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Post",
       default: null,
     },
-
-    sharedBy: {
-      type: [mongoose.Schema.Types.ObjectId], // Danh sách người dùng đã share bài viết
+    repostedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    reposts: {
+      type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
       default: [],
     },
+    createdAt: {
+      type: Date,
+      default: Date.now, // Đảm bảo lưu chính xác timestamp
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now, // Thêm updatedAt theo dõi cập nhật
+    },
+    location: {
+      name: {
+        type: String,
+        default: "No location specified",
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        default: [],
+      },
+    },
   },
   {
-    timestamps: true,
+    timestamps: true, // Tự động quản lý createdAt và updatedAt
   }
 );
 
-// Tạo chỉ mục địa lý cho trường "location"
-postSchema.index({ "location.coordinates": "2dsphere" });
-
 const Post = mongoose.model("Post", postSchema);
-
+postSchema.pre("save", function (next) {
+  // Đảm bảo video là string hoặc null
+  if (this.video !== null && typeof this.video !== "string") {
+    this.video = null;
+  }
+  next();
+});
 export default Post;

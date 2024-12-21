@@ -208,7 +208,7 @@ const getSuggestedUsers = async (req, res) => {
         },
       },
       {
-        $sample: { size: 10 },
+        $sample: { size: 20 },
       },
     ]);
     const filteredUsers = users.filter((user) => !usersFollowedByYou.following.includes(user._id));

@@ -34,10 +34,28 @@ const SuggestedUsers = () => {
       <Text mb={4} fontWeight={"bold"}>
         Suggested Users
       </Text>
-      <Flex direction={"column"} gap={4}>
+      <Flex
+        direction={"column"}
+        gap={4}
+        maxH={"500px"} // Thêm chiều cao tối đa
+        overflowY={"auto"} // Thêm scroll
+        sx={{
+          "&::-webkit-scrollbar": {
+            width: "8px",
+          },
+          "&::-webkit-scrollbar-track": {
+            width: "10px",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "gray.300",
+            borderRadius: "24px",
+          },
+        }}
+      >
         {!loading && suggestedUsers.map((user) => <SuggestedUser key={user._id} user={user} />)}
         {loading &&
-          [0, 1, 2, 3, 4].map((_, idx) => (
+          // Tăng số lượng skeleton items
+          Array.from({ length: 15 }).map((_, idx) => (
             <Flex key={idx} gap={2} alignItems={"center"} p={"1"} borderRadius={"md"}>
               {/* avatar skeleton */}
               <Box>
@@ -60,7 +78,6 @@ const SuggestedUsers = () => {
 };
 
 export default SuggestedUsers;
-
 // Loading skeletons for suggested users, if u want to copy and paste as shown in the tutorial
 
 // <Flex key={idx} gap={2} alignItems={"center"} p={"1"} borderRadius={"md"}>

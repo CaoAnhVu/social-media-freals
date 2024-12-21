@@ -26,7 +26,8 @@ const usePreviewVideo = () => {
   const [videoUrl, setVideoUrl] = useState(null);
   const showToast = useShowToast();
 
-  const handleVideoChange = (e) => {
+  const handleVideoPreview = (e) => {
+    // Đổi tên thành handleVideoPreview
     const file = e.target.files[0];
     if (file && file.type.startsWith("video/")) {
       const reader = new FileReader();
@@ -42,7 +43,7 @@ const usePreviewVideo = () => {
     }
   };
 
-  return { handleVideoChange, videoUrl, setVideoUrl };
+  return { handleVideoPreview, videoUrl, setVideoUrl };
 };
 
 export { usePreviewImg, usePreviewVideo };

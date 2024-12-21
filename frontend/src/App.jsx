@@ -17,9 +17,10 @@ import { SettingsPage } from "./pages/SettingsPage";
 function App() {
   const user = useRecoilValue(userAtom);
   const { pathname } = useLocation();
+
   return (
     <Box position={"relative"} w="full">
-      <Container maxW={pathname === "/" ? { base: "630px", md: "1100px" } : "630px"}>
+      <Container maxW={pathname === "/" ? { base: "620px", md: "1100px" } : "620px"}>
         <Header />
         <Sidebar />
         <Routes>
@@ -44,8 +45,6 @@ function App() {
           <Route path="/chat" element={user ? <ChatPage /> : <Navigate to={"/auth"} />} />
           <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to={"/auth"} />} />
         </Routes>
-        {/* {user && <LogoutButton />} */}
-        {user && <CreatePost />}
       </Container>
     </Box>
   );

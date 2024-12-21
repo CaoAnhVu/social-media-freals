@@ -1,7 +1,6 @@
 import { Button, Flex, FormControl, FormLabel, Heading, Input, Stack, useColorModeValue, Avatar, Center } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { useRecoilState } from "recoil";
-import { ArrowBackIcon } from "@chakra-ui/icons";
 import userAtom from "../atoms/userAtom";
 import { useNavigate } from "react-router-dom";
 import { usePreviewImg } from "../hooks/usePreviewImg";

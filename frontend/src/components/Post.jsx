@@ -4,7 +4,7 @@ import { Box, Flex, Text, Skeleton, Spinner, Divider } from "@chakra-ui/react";
 import { useColorMode } from "@chakra-ui/react";
 import { Link, useNavigate } from "react-router-dom";
 import Actions from "./Actions";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import useShowToast from "../hooks/useShowToast";
 import { formatDistanceToNow } from "date-fns";
 import { DeleteIcon } from "@chakra-ui/icons";
@@ -12,8 +12,6 @@ import { MdOutlineCommentsDisabled } from "react-icons/md";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import postsAtom from "../atoms/postsAtom";
-// import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-// import { IconButton } from "@chakra-ui/react";
 
 const Post = ({ post, postedBy }) => {
   const [user, setUser] = useState(null);
@@ -25,10 +23,14 @@ const Post = ({ post, postedBy }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
   const location = post.location && post.location.name ? post.location.name : null;
   const coordinates = post?.location?.coordinates?.length ? post.location.coordinates.join(", ") : "No coordinates available";
-
+  console.log("Post props:", { post, postedBy });
+  console.log("Post received:", {
+    post,
+    video: post.video,
+    img: post.img,
+  });
   useEffect(() => {
     const getUser = async () => {
       try {
@@ -51,21 +53,56 @@ const Post = ({ post, postedBy }) => {
     getUser();
   }, [postedBy, showToast]);
 
-  useEffect(() => {
-    const handleScroll = (e) => {
-      const container = e.target;
-      const scrollPosition = container.scrollLeft;
-      const imageWidth = container.offsetWidth;
-      const newIndex = Math.round(scrollPosition / imageWidth);
-      setCurrentImageIndex(newIndex);
-    };
+  const handleScroll = useCallback((e) => {
+    const container = e.target;
+    const scrollPosition = container.scrollLeft;
+    const itemWidth = container.offsetWidth;
+    const newIndex = Math.round(scrollPosition / itemWidth);
+    setCurrentImageIndex(newIndex);
+  }, []);
 
+  useEffect(() => {
     const imageContainer = document.querySelector(".image-container");
     if (imageContainer) {
       imageContainer.addEventListener("scroll", handleScroll);
       return () => imageContainer.removeEventListener("scroll", handleScroll);
     }
-  }, []);
+  }, [handleScroll]);
+
+  useEffect(() => {
+    if (post.video) {
+      console.log("Video URL:", post.video);
+      // Kiểm tra video URL
+      fetch(post.video)
+        .then((response) => console.log("Video response:", response))
+        .catch((error) => console.error("Video error:", error));
+    }
+  }, [post.video]);
+  const mediaItems = useMemo(() => {
+    const items = [];
+
+    // Xử lý ảnh
+    if (post.img) {
+      if (Array.isArray(post.img)) {
+        items.push(...post.img.map((img) => ({ type: "image", url: img })));
+      } else {
+        items.push({ type: "image", url: post.img });
+      }
+    }
+
+    // Xử lý video - thêm kiểm tra kỹ hơn
+    if (post.video && typeof post.video === "string" && post.video.trim() !== "") {
+      items.push({
+        type: "video",
+        url: post.video,
+        mimeType: post.video.endsWith(".mp4") ? "video/mp4" : post.video.endsWith(".webm") ? "video/webm" : "video/mp4",
+      });
+    }
+
+    console.log("Media Items:", items); // Thêm log để debug
+
+    return items;
+  }, [post.img, post.video]);
 
   const handleDeletePost = async (e) => {
     try {
@@ -102,6 +139,10 @@ const Post = ({ post, postedBy }) => {
       </Flex>
     );
   }
+  const handleVideoError = (e) => {
+    console.error("Video error:", e);
+    showToast("Error", "Could not load video", "error");
+  };
   return (
     <Link to={`/${user.username}/post/${post._id}`}>
       <Flex gap={3} mb={4} py={5}>
@@ -115,6 +156,8 @@ const Post = ({ post, postedBy }) => {
                 e.preventDefault();
                 navigate(`/${user.username}`);
               }}
+              _hover={{ transform: "scale(1.1)" }}
+              transition="all 0.3s"
             />
           </Skeleton>
           <Box w="1px" h={"full"} bg="gray.light" my={2}></Box>
@@ -143,19 +186,50 @@ const Post = ({ post, postedBy }) => {
                     e.preventDefault();
                     navigate(`/${user.username}`);
                   }}
+                  _hover={{ color: "blue.400" }}
+                  cursor="pointer"
                 >
                   {user?.username}
                 </Text>
               </Skeleton>
-              <Image src="/verified.png" w={4} h={4} ml={1} />
+              <Image src="/verified.png" w={4} h={4} ml={1} _hover={{ transform: "scale(1.1)" }} transition="all 0.3s" />
             </Flex>
-            <Flex gap={4} alignItems={"center"}>
+
+            {/* Điều chỉnh phần hiển thị date */}
+            <Flex gap={2} alignItems={"center"} mt={4}>
               <Skeleton isLoaded={!loading}>
-                <Text fontSize={"sm"} width={36} textAlign={"right"} color={"gray.light"}>
-                  {formatDistanceToNow(new Date(post.createdAt))} ago
-                </Text>
+                <Flex gap={2} alignItems="center" whiteSpace="nowrap">
+                  <Text fontSize={"sm"} color={"gray.light"}>
+                    {new Intl.DateTimeFormat("vi-VN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }).format(new Date(post.createdAt))}
+                  </Text>
+                  <Box w={1} h={1} borderRadius="full" bg="gray.500" />
+                  <Text fontSize={"sm"} color={"gray.light"}>
+                    {new Intl.DateTimeFormat("vi-VN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    }).format(new Date(post.createdAt))}
+                  </Text>
+                  <Box w={1} h={1} borderRadius="full" bg="gray.500" />
+                  <Text fontSize={"sm"} color={"gray.light"} whiteSpace="nowrap">
+                    {formatDistanceToNow(new Date(post.createdAt))} ago
+                  </Text>
+                </Flex>
               </Skeleton>
-              {currentUser && currentUser._id === user._id && <DeleteIcon size={20} onClick={handleDeletePost} />}
+              {currentUser && currentUser._id === user._id && (
+                <DeleteIcon
+                  size={20}
+                  onClick={handleDeletePost}
+                  _hover={{
+                    cursor: "pointer",
+                    color: "red.500",
+                  }}
+                  transition="all 0.2s ease"
+                />
+              )}
             </Flex>
           </Flex>
 
@@ -163,8 +237,8 @@ const Post = ({ post, postedBy }) => {
             <Text fontSize={"sm"}>{post.text}</Text>
           </Skeleton>
 
-          {/* Hiển thị hình ảnh */}
-          {post.img && (
+          {/* Hiển thị media container khi có ảnh hoặc video */}
+          {mediaItems.length > 0 && (
             <Box borderRadius={12} overflow="hidden" border={"1px solid"} borderColor={"gray.light"} position="relative" display="inline-block">
               <Flex
                 className="image-container"
@@ -205,36 +279,35 @@ const Post = ({ post, postedBy }) => {
                 onScroll={(e) => {
                   const container = e.target;
                   const scrollPosition = container.scrollLeft;
-                  const imageWidth = container.offsetWidth;
-                  const newIndex = Math.round(scrollPosition / imageWidth);
+                  const itemWidth = container.offsetWidth;
+                  const newIndex = Math.round(scrollPosition / itemWidth);
                   setCurrentImageIndex(newIndex);
                 }}
               >
-                {Array.isArray(post.img) ? (
-                  post.img.map((image, index) => (
-                    <Box key={index} minW="100%" position="relative">
-                      <Image src={image} width="100%" h="400px" flexShrink={0} scrollSnapAlign="start" objectFit="cover" transition="transform 0.3s ease" />
-                      {index === currentImageIndex && (
-                        <Text position="absolute" right="8px" bottom="8px" bg="blackAlpha.700" color="white" px={2} py={1} borderRadius="full" fontSize="sm" zIndex={1}>
-                          {currentImageIndex + 1}/{post.img.length}
-                        </Text>
-                      )}
-                    </Box>
-                  ))
-                ) : (
-                  <Image src={post.img} width="100%" h="400px" flexShrink={0} objectFit="cover" transition="transform 0.3s ease" />
-                )}
+                {mediaItems.map((item, index) => (
+                  <Box key={index} minW="100%" position="relative">
+                    {item.type === "image" ? (
+                      <Image src={item.url} width="100%" h="400px" flexShrink={0} scrollSnapAlign="start" objectFit="cover" transition="transform 0.3s ease" />
+                    ) : (
+                      <Box width="100%" h="400px" flexShrink={0} scrollSnapAlign="start" display="flex" alignItems="center" justifyContent="center" bg="black">
+                        <video width="100%" height="100%" controls preload="metadata" style={{ objectFit: "contain" }} onError={handleVideoError}>
+                          <source src={item.url} type={item.mimeType} />
+                          <source src={item.url} type="video/webm" />
+                          <source src={item.url} type="video/ogg" />
+                          Your browser does not support the video tag.
+                        </video>
+                      </Box>
+                    )}
+                  </Box>
+                ))}
               </Flex>
-            </Box>
-          )}
 
-          {/* Hiển thị video */}
-          {post.video && (
-            <Box borderRadius={6} overflow={"hidden"} border={"1px solid"} borderColor={"gray.light"}>
-              <video width="100%" controls>
-                <source src={post.video} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+              {/* Hiển thị chỉ số trang */}
+              {mediaItems.length > 1 && (
+                <Text position="absolute" right="8px" bottom="8px" bg="blackAlpha.700" color="white" px={2} py={1} borderRadius="full" fontSize="sm" zIndex={1}>
+                  {currentImageIndex + 1}/{mediaItems.length}
+                </Text>
+              )}
             </Box>
           )}
 

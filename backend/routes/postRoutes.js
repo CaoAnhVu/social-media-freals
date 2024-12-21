@@ -1,6 +1,20 @@
 import multer from "multer";
 import express from "express";
-import { uploadVideoBlob, createPost, deletePost, getFeedPosts, getPost, getUserPosts, likeUnlikePost, replyToPost, deleteReply, repostPost, sharePost } from "../controllers/postController.js";
+import {
+  uploadVideoBlob,
+  createPost,
+  deletePost,
+  getFeedPosts,
+  getPost,
+  getUserPosts,
+  getUserReplies,
+  likeUnlikePost,
+  replyToPost,
+  deleteReply,
+  repostPost,
+  getUserReposts,
+  sharePost,
+} from "../controllers/postController.js";
 import protectRoute from "../middleware/protectRoute.js";
 
 const router = express.Router();
@@ -27,6 +41,8 @@ router.delete("/:id", protectRoute, deletePost);
 router.put("/like/:id", protectRoute, likeUnlikePost);
 router.put("/reply/:id", protectRoute, uploadMiddleware.fields([{ name: "img", maxCount: 1 }]), replyToPost);
 router.delete("/reply/:postId/:replyId", protectRoute, deleteReply);
+router.get("/replies/:username", getUserReplies);
+router.get("/reposts/:id", getUserReposts);
 router.post("/repost/:id", protectRoute, repostPost);
 router.put("/share/:id", protectRoute, sharePost);
 

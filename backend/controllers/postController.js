@@ -28,60 +28,111 @@ const createPost = async (req, res) => {
   try {
     const { postedBy, text, location } = req.body;
     let imgUrls = [];
+    let videoUrl = null;
 
-    console.log("Files received:", req.files);
-
-    // Xử lý nhiều ảnh
+    // Xử lý upload nhiều ảnh
     if (req.files && req.files["img"]) {
       const imgFiles = Array.isArray(req.files["img"]) ? req.files["img"] : [req.files["img"]];
-      console.log("Processing images:", imgFiles.length);
 
-      // Upload tất cả các ảnh
-      const uploadPromises = imgFiles.map(async (imgFile) => {
-        try {
-          const imgUpload = await cloudinary.uploader.upload(`data:${imgFile.mimetype};base64,${imgFile.buffer.toString("base64")}`, {
-            resource_type: "image",
-          });
-          console.log("Uploaded image:", imgUpload.secure_url);
-          return imgUpload.secure_url;
-        } catch (error) {
-          console.error("Error uploading image:", error);
-          throw error;
-        }
-      });
-
-      imgUrls = await Promise.all(uploadPromises);
-      console.log("All uploaded image URLs:", imgUrls);
+      for (const file of imgFiles) {
+        const result = await cloudinary.uploader.upload(`data:${file.mimetype};base64,${file.buffer.toString("base64")}`, { resource_type: "image" });
+        imgUrls.push(result.secure_url);
+      }
     }
 
-    // Tạo bài đăng mới với mảng ảnh
+    // Xử lý upload video
+    if (req.files && req.files["video"]) {
+      const videoFile = Array.isArray(req.files["video"]) ? req.files["video"][0] : req.files["video"];
+
+      const result = await cloudinary.uploader.upload(`data:${videoFile.mimetype};base64,${videoFile.buffer.toString("base64")}`, {
+        resource_type: "video",
+        chunk_size: 6000000,
+        timeout: 120000,
+      });
+      videoUrl = result.secure_url;
+    }
+
     const newPost = new Post({
       postedBy,
       text,
       img: imgUrls,
+      video: videoUrl,
       location: location ? JSON.parse(location) : null,
-    });
-
-    console.log("New post data:", {
-      postedBy,
-      text,
-      imgUrls,
-      location,
     });
 
     await newPost.save();
     res.status(201).json(newPost);
-  } catch (err) {
-    console.error("Error in createPost:", err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
+// const createPost = async (req, res) => {
+//   try {
+//     const { postedBy, text, location } = req.body;
+//     let imgUrls = [];
+
+//     console.log("Files received:", req.files);
+
+//     // Xử lý nhiều ảnh
+//     if (req.files && req.files["img"]) {
+//       const imgFiles = Array.isArray(req.files["img"]) ? req.files["img"] : [req.files["img"]];
+//       console.log("Processing images:", imgFiles.length);
+
+//       // Upload tất cả các ảnh
+//       const uploadPromises = imgFiles.map(async (imgFile) => {
+//         try {
+//           const imgUpload = await cloudinary.uploader.upload(`data:${imgFile.mimetype};base64,${imgFile.buffer.toString("base64")}`, {
+//             resource_type: "image",
+//           });
+//           console.log("Uploaded image:", imgUpload.secure_url);
+//           return imgUpload.secure_url;
+//         } catch (error) {
+//           console.error("Error uploading image:", error);
+//           throw error;
+//         }
+//       });
+
+//       imgUrls = await Promise.all(uploadPromises);
+//       console.log("All uploaded image URLs:", imgUrls);
+//     }
+
+//     // Tạo bài đăng mới với mảng ảnh
+//     const newPost = new Post({
+//       postedBy,
+//       text,
+//       img: imgUrls,
+//       location: location ? JSON.parse(location) : null,
+//     });
+
+//     console.log("New post data:", {
+//       postedBy,
+//       text,
+//       imgUrls,
+//       location,
+//     });
+
+//     await newPost.save();
+//     res.status(201).json(newPost);
+//   } catch (err) {
+//     console.error("Error in createPost:", err);
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 
 const getPost = async (req, res) => {
   try {
     // Tìm bài viết theo ID và sử dụng populate
-    const post = await Post.findById(req.params.id).populate("postedBy", "username profilePic").populate("reposts", "username profilePic");
-
+    const post = await Post.findById(req.params.id)
+      // .populate("postedBy", "username profilePic").populate("reposts", "username profilePic");
+      .populate("postedBy")
+      .populate("likes")
+      .populate({
+        path: "replies",
+        populate: {
+          path: "userId",
+          select: "-password",
+        },
+      });
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
@@ -273,48 +324,6 @@ const deleteReply = async (req, res) => {
   }
 };
 
-const repostPost = async (req, res) => {
-  try {
-    const postId = req.params.id; // ID bài viết gốc
-    const userId = req.user._id; // ID người dùng từ token
-
-    // Tìm bài viết gốc
-    const originalPost = await Post.findById(postId);
-    if (!originalPost) {
-      return res.status(404).json({ error: "Post not found" });
-    }
-
-    // Kiểm tra nếu người dùng đã repost
-    const hasReposted = originalPost.reposts.includes(userId);
-
-    if (hasReposted) {
-      // Nếu đã repost, thì gỡ repost
-      originalPost.reposts = originalPost.reposts.filter((id) => id.toString() !== userId.toString());
-      await originalPost.save();
-      return res.status(200).json({ message: "Repost removed", post: originalPost });
-    }
-
-    // Nếu chưa repost, thêm vào danh sách repost
-    originalPost.reposts.push(userId);
-
-    // Tạo một bài viết mới (nếu cần lưu repost như bài viết riêng)
-    const repost = await Post.create({
-      content: originalPost.content, // Copy nội dung từ bài viết gốc
-      postedBy: userId, // Gán người dùng đã repost
-      originalPost: postId, // Gắn bài viết gốc
-      isRepost: true, // Đánh dấu bài viết là repost
-      repostedAt: new Date(), // Thời gian repost
-    });
-
-    await originalPost.save();
-
-    res.status(201).json({ message: "Post reposted", repost });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
 const sharePost = async (req, res) => {
   try {
     const postId = req.params.id;
@@ -375,4 +384,199 @@ const getUserPosts = async (req, res) => {
   }
 };
 
-export { verifyUserOwnership, createPost, deletePost, getPost, likeUnlikePost, replyToPost, deleteReply, repostPost, sharePost, getFeedPosts, getUserPosts, upload, uploadVideoBlob };
+const getUserReplies = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    // Tìm tất cả posts có replies của user và không phải của chính user đó
+    const posts = await Post.find({
+      $and: [{ "replies.userId": user._id }, { postedBy: { $ne: user._id } }],
+    })
+      .populate("postedBy", "username profilePic name")
+      .select("text img video likes replies reposts shares createdAt postedBy"); // Đảm bảo select video
+    const userReplies = [];
+    posts.forEach((post) => {
+      // Lọc replies của user trong mỗi post
+      const postReplies = post.replies.filter((reply) => reply.userId.toString() === user._id.toString());
+      postReplies.forEach((reply) => {
+        // Xử lý media cho originalPost
+        const processedPost = {
+          _id: post._id,
+          text: post.text,
+          img: Array.isArray(post.img) ? post.img : post.img ? [post.img] : [], // Đảm bảo img là mảng
+          video: post.video || null, // Xử lý video
+          postedBy: post.postedBy,
+          createdAt: post.createdAt,
+          likes: post.likes || [],
+          replies: post.replies || [],
+          reposts: post.reposts || [],
+          shares: post.shares || [],
+        };
+        userReplies.push({
+          _id: reply._id,
+          text: reply.text,
+          img: reply.img,
+          createdAt: reply.createdAt,
+          userId: user._id,
+          username: reply.username,
+          userProfilePic: reply.userProfilePic,
+          likes: reply.likes || [],
+          replies: reply.replies || [],
+          originalPost: processedPost, // Sử dụng processedPost đã xử lý
+        });
+      });
+    });
+    // Sắp xếp theo thời gian mới nhất
+    userReplies.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // Log để kiểm tra
+    console.log(
+      "Processed user replies:",
+      userReplies.map((reply) => ({
+        ...reply,
+        originalPost: {
+          ...reply.originalPost,
+          video: reply.originalPost.video, // Kiểm tra video
+        },
+      }))
+    );
+    res.status(200).json(userReplies);
+  } catch (err) {
+    console.error("Error in getUserReplies:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+const repostPost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user._id;
+    const originalPost = await Post.findById(postId);
+    if (!originalPost) {
+      return res.status(404).json({ error: "Bài viết không tồn tại" });
+    }
+    // Kiểm tra xem user đã repost bài này chưa
+    const existingRepost = await Post.findOne({
+      originalPost: postId,
+      repostedBy: userId,
+    });
+    if (existingRepost) {
+      // Nếu đã repost thì xóa repost
+      await existingRepost.deleteOne();
+
+      // Cập nhật mảng reposts của bài gốc
+      originalPost.reposts = originalPost.reposts.filter((id) => id.toString() !== userId.toString());
+      await originalPost.save();
+      return res.status(200).json({
+        message: "Repost removed",
+        post: originalPost,
+      });
+    }
+    // Tạo bài repost mới
+    const newRepost = new Post({
+      text: originalPost.text,
+      img: originalPost.img,
+      video: originalPost.video,
+      postedBy: originalPost.postedBy,
+      originalPost: originalPost._id,
+      repostedBy: userId,
+      repostedAt: new Date(),
+      likes: [],
+      replies: [],
+      reposts: [],
+      shares: [],
+    });
+    await newRepost.save();
+    // Cập nhật mảng reposts của bài gốc
+    originalPost.reposts.push(userId);
+    await originalPost.save();
+    // Populate thông tin cần thiết
+    const populatedRepost = await Post.findById(newRepost._id)
+      .populate("postedBy", "username profilePic name")
+      .populate("repostedBy", "username profilePic name")
+      .populate({
+        path: "originalPost",
+        populate: {
+          path: "postedBy",
+          select: "username profilePic name",
+        },
+      });
+    res.status(200).json({
+      message: "Post reposted successfully",
+      post: populatedRepost,
+    });
+  } catch (error) {
+    console.error("Error in repostPost:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+const getUserReposts = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    // Tìm tất cả bài viết được repost bởi user
+    const reposts = await Post.find({
+      reposts: user._id,
+    })
+      .populate("postedBy", "username profilePic name")
+      .populate({
+        path: "originalPost",
+        populate: {
+          path: "postedBy",
+          select: "username profilePic name",
+        },
+      })
+      .sort({ createdAt: -1 });
+    // Xử lý và format dữ liệu reposts
+    const formattedReposts = reposts.map((post) => ({
+      _id: post._id,
+      originalPost: {
+        _id: post.originalPost?._id || post._id,
+        text: post.text,
+        img: Array.isArray(post.img) ? post.img : post.img ? [post.img] : [],
+        video: post.video,
+        postedBy: post.originalPost?.postedBy || post.postedBy,
+        createdAt: post.originalPost?.createdAt || post.createdAt,
+        likes: post.likes || [],
+        replies: post.replies || [],
+        reposts: post.reposts || [],
+        shares: post.shares || [],
+      },
+      repostedBy: {
+        _id: user._id,
+        username: user.username,
+        profilePic: user.profilePic,
+        name: user.name,
+      },
+      repostedAt: post.updatedAt,
+    }));
+    // Log để debug
+    console.log("Formatted reposts:", formattedReposts);
+    res.status(200).json(formattedReposts);
+  } catch (error) {
+    console.error("Error in getUserReposts:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+export {
+  verifyUserOwnership,
+  createPost,
+  deletePost,
+  getPost,
+  likeUnlikePost,
+  replyToPost,
+  deleteReply,
+  repostPost,
+  getUserReposts,
+  sharePost,
+  getFeedPosts,
+  getUserPosts,
+  getUserReplies,
+  upload,
+  uploadVideoBlob,
+};

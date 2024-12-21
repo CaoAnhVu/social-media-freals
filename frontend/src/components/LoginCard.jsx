@@ -17,6 +17,12 @@ export default function LoginCard() {
   });
   const showToast = useShowToast();
 
+  const handleSubmit = async (e) => {
+    // Ngăn chặn form submit mặc định
+    e.preventDefault();
+    handleLogin();
+  };
+
   const handleLogin = async () => {
     setLoading(true);
     try {
@@ -46,53 +52,56 @@ export default function LoginCard() {
         <Stack align={"center"}>
           <Heading fontSize={"4xl"}>Login to your account</Heading>
         </Stack>
-        <Box rounded={"lg"} bg={useColorModeValue("#ffff", "#181818")} boxShadow={"lg"} p={8} w={{ base: "full", sm: "400px" }}>
-          <Stack spacing={4}>
-            <FormControl id="username" isRequired>
-              <FormLabel>Username</FormLabel>
-              <Input type="text" placeholder="Enter your username" value={inputs.username} onChange={(e) => setInputs((inputs) => ({ ...inputs, username: e.target.value }))} />
-            </FormControl>
-            <FormControl id="password" isRequired>
-              <FormLabel>Password</FormLabel>
-              <InputGroup>
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={inputs.password}
-                  onChange={(e) => setInputs((inputs) => ({ ...inputs, password: e.target.value }))}
-                />
-                <InputRightElement h={"full"}>
-                  <Button variant={"ghost"} onClick={() => setShowPassword((showPassword) => !showPassword)}>
-                    {showPassword ? <ViewIcon /> : <ViewOffIcon />}
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
-            </FormControl>
-            <Stack spacing={10} pt={2}>
-              <Button
-                loadingText="Logging in"
-                size="lg"
-                bg={useColorModeValue("gray.600", "gray.700")}
-                color={"white"}
-                _hover={{
-                  bg: useColorModeValue("gray.700", "gray.800"),
-                }}
-                onClick={handleLogin}
-                isLoading={loading}
-              >
-                Login
-              </Button>
+        <form onSubmit={handleSubmit}>
+          <Box rounded={"lg"} bg={useColorModeValue("#ffff", "#181818")} boxShadow={"lg"} p={8} w={{ base: "full", sm: "400px" }}>
+            <Stack spacing={4}>
+              <FormControl id="username" isRequired>
+                <FormLabel>Username</FormLabel>
+                <Input type="text" placeholder="Enter your username" value={inputs.username} onChange={(e) => setInputs((inputs) => ({ ...inputs, username: e.target.value }))} />
+              </FormControl>
+              <FormControl id="password" isRequired>
+                <FormLabel>Password</FormLabel>
+                <InputGroup>
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={inputs.password}
+                    onChange={(e) => setInputs((inputs) => ({ ...inputs, password: e.target.value }))}
+                  />
+                  <InputRightElement h={"full"}>
+                    <Button variant={"ghost"} onClick={() => setShowPassword((showPassword) => !showPassword)}>
+                      {showPassword ? <ViewIcon /> : <ViewOffIcon />}
+                    </Button>
+                  </InputRightElement>
+                </InputGroup>
+              </FormControl>
+              <Stack spacing={10} pt={2}>
+                <Button
+                  type="submit"
+                  loadingText="Logging in"
+                  size="lg"
+                  bg={useColorModeValue("gray.600", "gray.700")}
+                  color={"white"}
+                  _hover={{
+                    bg: useColorModeValue("gray.700", "gray.800"),
+                  }}
+                  onClick={handleLogin}
+                  isLoading={loading}
+                >
+                  Login
+                </Button>
+              </Stack>
+              <Stack pt={6}>
+                <Text align={"center"}>
+                  Don&apos;t have an account?{" "}
+                  <Link color={"blue.400"} onClick={() => setAuthScreen("signup")}>
+                    Sign up
+                  </Link>
+                </Text>
+              </Stack>
             </Stack>
-            <Stack pt={6}>
-              <Text align={"center"}>
-                Don&apos;t have an account?{" "}
-                <Link color={"blue.400"} onClick={() => setAuthScreen("signup")}>
-                  Sign up
-                </Link>
-              </Text>
-            </Stack>
-          </Stack>
-        </Box>
+          </Box>
+        </form>
       </Stack>
     </Flex>
   );

@@ -7,18 +7,21 @@ import { CloseIcon } from "@chakra-ui/icons";
 import ReactMarkdown from "react-markdown";
 import postsAtom from "../atoms/postsAtom";
 import userAtom from "../atoms/userAtom";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Picker from "@emoji-mart/react";
 import Comment from "./Comment";
 
 const Actions = ({ post, showReplies = false, onReplyAdded }) => {
   const user = useRecoilValue(userAtom);
-  const [liked, setLiked] = useState(post.likes.includes(user?._id));
+  const [liked, setLiked] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
   const [posts, setPosts] = useRecoilState(postsAtom);
   const [isReplying, setIsReplying] = useState(false);
-  const [isLiking, setIsLiking] = useState(false);
+  const [isReposting, setIsReposting] = useState(false);
+  const [reply, setReply] = useState("");
   const [imgUrl, setImgUrl] = useState(null);
   const imageRef = useRef(null);
+
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const listBgColor = useColorModeValue("#fff", "#1A202C");
   const previewBgColor = useColorModeValue("gray.50", "gray.700");
@@ -28,9 +31,29 @@ const Actions = ({ post, showReplies = false, onReplyAdded }) => {
     bold: false,
     italic: false,
   });
-  const [reply, setReply] = useState("");
   const showToast = useShowToast();
   const { onClose } = useDisclosure();
+
+  //  useEffect để xử lý liked state
+  useEffect(() => {
+    if (post?.likes && user?._id) {
+      setLiked(post.likes.includes(user._id));
+    }
+  }, [post?.likes, user?._id]);
+
+  useEffect(() => {
+    // Kiểm tra và set default values
+    if (post && post.likes) {
+      setLiked(post.likes.includes(user?._id));
+    }
+  }, [post, user]);
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // Ngăn xuống dòng
+      handleReply();
+    }
+  };
 
   // Xử lý upload ảnh
   const handleImageChange = (e) => {
@@ -238,7 +261,9 @@ const Actions = ({ post, showReplies = false, onReplyAdded }) => {
   const handleRepost = async () => {
     if (!user) return showToast("Error", "You must be logged in to repost", "error");
 
+    if (isReposting) return;
     try {
+      setIsReposting(true);
       const res = await fetch("/api/posts/repost/" + post._id, {
         method: "POST",
         headers: {
@@ -246,30 +271,29 @@ const Actions = ({ post, showReplies = false, onReplyAdded }) => {
         },
         body: JSON.stringify({
           userId: user._id,
-          username: user.username, // Thêm username vào request
+          username: user.username,
         }),
       });
-
       const responseText = await res.text();
       console.log("Repost API Response Text:", responseText);
-
       if (!res.ok) {
         console.error("Repost API Error:", responseText);
         throw new Error(`Error: ${res.status} - ${responseText}`);
       }
-
       const repost = JSON.parse(responseText);
       console.log("Repost API Response Data:", repost);
-
       // Cập nhật state với thông tin repost mới
       if (repost.message === "Post reposted successfully") {
-        // Thêm thông tin người repost vào bài viết
+        // Thêm thông tin người repost và thời gian repost vào bài viết
         const repostedPost = {
           ...repost.post,
           repostedBy: {
             _id: user._id,
             username: user.username,
+            profilePic: user.profilePic,
+            name: user.name,
           },
+          repostedAt: new Date().toISOString(),
         };
         setPosts([repostedPost, ...posts]);
         showToast("Success", "Post reposted successfully", "success");
@@ -281,6 +305,8 @@ const Actions = ({ post, showReplies = false, onReplyAdded }) => {
       }
     } catch (error) {
       showToast("Error", error.message, "error");
+    } finally {
+      setIsReposting(false);
     }
   };
 
@@ -330,27 +356,26 @@ const Actions = ({ post, showReplies = false, onReplyAdded }) => {
           <line fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="3" y2="10.083"></line>
           <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="currentColor" strokeLinejoin="round" strokeWidth="2"></polygon>
         </svg>
-        {/* <RepostSVG  />
-
-        <ShareSVG /> */}
       </Flex>
+
       <Flex gap={2} alignItems={"center"} mb={6}>
         <Text color={"gray.light"} fontSize="sm">
-          {post.likes.length} likes
+          {post?.likes?.length || 0} likes
         </Text>
         <Box w={0.5} h={0.5} borderRadius={"full"} bg={"gray.light"}></Box>
         <Text color={"gray.light"} fontSize="sm">
-          {post.replies.length} replies
+          {post?.replies?.length || 0} replies
         </Text>
         <Box w={0.5} h={0.5} borderRadius={"full"} bg={"gray.light"}></Box>
         <Text color={"gray.light"} fontSize="sm">
-          {post.reposts.length} reposts
+          {post?.reposts?.length || 0} reposts
         </Text>
         <Box w={0.5} h={0.5} borderRadius={"full"} bg={"gray.light"}></Box>
         <Text color={"gray.light"} fontSize="sm">
-          {post.sharedBy.length} shared
+          {post?.sharedBy?.length || 0} shared
         </Text>
       </Flex>
+
       {/* Comment Section */}
       {showReplies && (
         <Box w="full" mt={6}>
@@ -366,6 +391,7 @@ const Actions = ({ post, showReplies = false, onReplyAdded }) => {
                     <MentionsInput
                       value={reply}
                       onChange={(e) => setReply(e.target.value)}
+                      onKeyDown={handleKeyPress}
                       placeholder="Write a comment..."
                       style={{
                         control: {

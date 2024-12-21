@@ -5,12 +5,14 @@ import { BsThreeDots } from "react-icons/bs";
 import { Link } from "react-router-dom";
 import Actions from "./Actions";
 import { useState } from "react";
+import { useColorMode } from "@chakra-ui/react";
 
 const UserPost = ({ postImg, postTitle, likes, replies }) => {
   const [liked, setLiked] = useState(false);
+  const { colorMode } = useColorMode();
   return (
     <Link to={"/markzuckerberg/post/1"}>
-      <Flex gap={3} mb={4} py={5}>
+      <Flex gap={3} mb={4} py={5} _hover={{ bg: colorMode === "dark" ? "whiteAlpha.100" : "gray.100" }}>
         <Flex flexDirection={"column"} alignItems={"center"}>
           <Avatar size="md" name="Mark Zuckerberg" src="/zuck-avatar.png" />
           <Box w="1px" h={"full"} bg="gray.light" my={2}></Box>

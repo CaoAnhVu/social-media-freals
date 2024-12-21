@@ -25,8 +25,8 @@ cloudinary.config({
 });
 
 //Middlewares
-app.use(express.json({ limit: "50mb" })); // To parse JSON data in the req.body
-app.use(express.urlencoded({ limit: "10mb", extended: true }));
+app.use(express.json({ limit: "3072mb" })); // To parse JSON data in the req.body
+app.use(express.urlencoded({ limit: "3072mb", extended: true }));
 app.use(cookieParser());
 
 // Use imported routes
