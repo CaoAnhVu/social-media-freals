@@ -13,6 +13,7 @@ import {
   deleteReply,
   repostPost,
   getUserReposts,
+  removeRepost,
   sharePost,
 } from "../controllers/postController.js";
 import protectRoute from "../middleware/protectRoute.js";
@@ -42,8 +43,9 @@ router.put("/like/:id", protectRoute, likeUnlikePost);
 router.put("/reply/:id", protectRoute, uploadMiddleware.fields([{ name: "img", maxCount: 1 }]), replyToPost);
 router.delete("/reply/:postId/:replyId", protectRoute, deleteReply);
 router.get("/replies/:username", getUserReplies);
-router.get("/reposts/:id", getUserReposts);
+router.get("/reposts/:username", getUserReposts);
 router.post("/repost/:id", protectRoute, repostPost);
+router.delete("/repost/:id/remove", protectRoute, removeRepost);
 router.put("/share/:id", protectRoute, sharePost);
 
 export default router;

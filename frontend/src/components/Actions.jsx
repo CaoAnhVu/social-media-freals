@@ -260,8 +260,13 @@ const Actions = ({ post, showReplies = false, onReplyAdded }) => {
   // Hàm đăng lại bài viết
   const handleRepost = async () => {
     if (!user) return showToast("Error", "You must be logged in to repost", "error");
-
     if (isReposting) return;
+
+    // Kiểm tra nếu đã repost thì không cho repost nữa
+    if (post.reposts.includes(user._id)) {
+      showToast("Info", "You have already reposted this post", "info");
+      return;
+    }
     try {
       setIsReposting(true);
       const res = await fetch("/api/posts/repost/" + post._id, {
@@ -282,26 +287,21 @@ const Actions = ({ post, showReplies = false, onReplyAdded }) => {
       }
       const repost = JSON.parse(responseText);
       console.log("Repost API Response Data:", repost);
-      // Cập nhật state với thông tin repost mới
+      // Chỉ xử lý trường hợp repost thành công
       if (repost.message === "Post reposted successfully") {
-        // Thêm thông tin người repost và thời gian repost vào bài viết
-        const repostedPost = {
-          ...repost.post,
-          repostedBy: {
-            _id: user._id,
-            username: user.username,
-            profilePic: user.profilePic,
-            name: user.name,
-          },
-          repostedAt: new Date().toISOString(),
-        };
-        setPosts([repostedPost, ...posts]);
+        setPosts(
+          posts.map((p) => {
+            if (p._id === post._id) {
+              return {
+                ...p,
+                reposts: [...p.reposts, user._id],
+              };
+            }
+            return p;
+          })
+        );
+
         showToast("Success", "Post reposted successfully", "success");
-      } else if (repost.message === "Repost removed") {
-        // Xóa bài repost khỏi danh sách
-        const updatedPosts = posts.filter((p) => p._id !== repost.post._id);
-        setPosts(updatedPosts);
-        showToast("Success", "Repost removed successfully", "success");
       }
     } catch (error) {
       showToast("Error", error.message, "error");

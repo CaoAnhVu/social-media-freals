@@ -452,20 +452,15 @@ const repostPost = async (req, res) => {
   try {
     const postId = req.params.id;
     const userId = req.user._id;
+
     const originalPost = await Post.findById(postId);
     if (!originalPost) {
       return res.status(404).json({ error: "Bài viết không tồn tại" });
     }
     // Kiểm tra xem user đã repost bài này chưa
-    const existingRepost = await Post.findOne({
-      originalPost: postId,
-      repostedBy: userId,
-    });
-    if (existingRepost) {
+    const hasReposted = originalPost.reposts.includes(userId);
+    if (hasReposted) {
       // Nếu đã repost thì xóa repost
-      await existingRepost.deleteOne();
-
-      // Cập nhật mảng reposts của bài gốc
       originalPost.reposts = originalPost.reposts.filter((id) => id.toString() !== userId.toString());
       await originalPost.save();
       return res.status(200).json({
@@ -473,44 +468,21 @@ const repostPost = async (req, res) => {
         post: originalPost,
       });
     }
-    // Tạo bài repost mới
-    const newRepost = new Post({
-      text: originalPost.text,
-      img: originalPost.img,
-      video: originalPost.video,
-      postedBy: originalPost.postedBy,
-      originalPost: originalPost._id,
-      repostedBy: userId,
-      repostedAt: new Date(),
-      likes: [],
-      replies: [],
-      reposts: [],
-      shares: [],
-    });
-    await newRepost.save();
-    // Cập nhật mảng reposts của bài gốc
+    // Thêm userId vào mảng reposts của bài gốc
     originalPost.reposts.push(userId);
     await originalPost.save();
-    // Populate thông tin cần thiết
-    const populatedRepost = await Post.findById(newRepost._id)
-      .populate("postedBy", "username profilePic name")
-      .populate("repostedBy", "username profilePic name")
-      .populate({
-        path: "originalPost",
-        populate: {
-          path: "postedBy",
-          select: "username profilePic name",
-        },
-      });
+    // Populate thông tin cần thiết và trả về
+    const populatedPost = await Post.findById(postId).populate("postedBy", "username profilePic name").populate("reposts", "username profilePic name");
     res.status(200).json({
       message: "Post reposted successfully",
-      post: populatedRepost,
+      post: populatedPost,
     });
   } catch (error) {
     console.error("Error in repostPost:", error);
     res.status(500).json({ error: error.message });
   }
 };
+// Hàm lấy danh sách bài viết đã repost của user
 const getUserReposts = async (req, res) => {
   try {
     const { username } = req.params;
@@ -519,47 +491,66 @@ const getUserReposts = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    // Tìm tất cả bài viết được repost bởi user
-    const reposts = await Post.find({
+    // Tìm tất cả bài viết có userId trong mảng reposts
+    const repostedPosts = await Post.find({
       reposts: user._id,
     })
-      .populate("postedBy", "username profilePic name")
-      .populate({
-        path: "originalPost",
-        populate: {
-          path: "postedBy",
-          select: "username profilePic name",
-        },
-      })
+      .populate("postedBy", "name username profilePic") // Populate thông tin người đăng bài gốc
+      .populate("reposts", "name username profilePic") // Populate thông tin người repost
       .sort({ createdAt: -1 });
-    // Xử lý và format dữ liệu reposts
-    const formattedReposts = reposts.map((post) => ({
+    // Format lại dữ liệu để phù hợp với giao diện
+    const formattedReposts = repostedPosts.map((post) => ({
       _id: post._id,
+      text: post.text,
+      img: post.img,
+      video: post.video,
+      likes: post.likes,
+      replies: post.replies,
       originalPost: {
-        _id: post.originalPost?._id || post._id,
+        _id: post._id,
         text: post.text,
-        img: Array.isArray(post.img) ? post.img : post.img ? [post.img] : [],
+        img: post.img,
         video: post.video,
-        postedBy: post.originalPost?.postedBy || post.postedBy,
-        createdAt: post.originalPost?.createdAt || post.createdAt,
-        likes: post.likes || [],
-        replies: post.replies || [],
-        reposts: post.reposts || [],
-        shares: post.shares || [],
+        postedBy: post.postedBy,
+        createdAt: post.createdAt,
+        likes: post.likes,
+        replies: post.replies,
       },
       repostedBy: {
         _id: user._id,
         username: user.username,
-        profilePic: user.profilePic,
         name: user.name,
+        profilePic: user.profilePic,
       },
       repostedAt: post.updatedAt,
+      createdAt: post.createdAt,
     }));
     // Log để debug
-    console.log("Formatted reposts:", formattedReposts);
+    console.log("Found reposts:", formattedReposts);
     res.status(200).json(formattedReposts);
   } catch (error) {
     console.error("Error in getUserReposts:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+const removeRepost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user._id;
+    console.log("Removing repost:", { postId, userId });
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Bài viết không tồn tại" });
+    }
+    // Xóa userId khỏi mảng reposts
+    post.reposts = post.reposts.filter((id) => id.toString() !== userId.toString());
+    await post.save();
+    res.status(200).json({
+      message: "Đã xóa bài đăng lại thành công",
+      post,
+    });
+  } catch (error) {
+    console.error("Error in removeRepost:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -573,6 +564,7 @@ export {
   deleteReply,
   repostPost,
   getUserReposts,
+  removeRepost,
   sharePost,
   getFeedPosts,
   getUserPosts,

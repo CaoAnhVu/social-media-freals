@@ -1,12 +1,13 @@
 import { Avatar } from "@chakra-ui/avatar";
 import { Image } from "@chakra-ui/image";
-import { Box, Flex, Text, Skeleton, Spinner, Divider } from "@chakra-ui/react";
+import { Box, Flex, Text, Skeleton, Spinner } from "@chakra-ui/react";
 import { useColorMode } from "@chakra-ui/react";
 import { Link, useNavigate } from "react-router-dom";
 import Actions from "./Actions";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import useShowToast from "../hooks/useShowToast";
 import { formatDistanceToNow } from "date-fns";
+import { vi } from "date-fns/locale";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { MdOutlineCommentsDisabled } from "react-icons/md";
 import { useRecoilState, useRecoilValue } from "recoil";
@@ -145,7 +146,7 @@ const Post = ({ post, postedBy }) => {
   };
   return (
     <Link to={`/${user.username}/post/${post._id}`}>
-      <Flex gap={3} mb={4} py={5}>
+      <Flex gap={1} mb={4} py={5}>
         <Flex flexDirection={"column"} alignItems={"center"}>
           <Skeleton isLoaded={!loading} width="50px" height="50px">
             <Avatar
@@ -205,7 +206,7 @@ const Post = ({ post, postedBy }) => {
                       minute: "2-digit",
                     }).format(new Date(post.createdAt))}
                   </Text>
-                  <Box w={1} h={1} borderRadius="full" bg="gray.500" />
+                  <Text fontSize="sm">•</Text>
                   <Text fontSize={"sm"} color={"gray.light"}>
                     {new Intl.DateTimeFormat("vi-VN", {
                       day: "2-digit",
@@ -213,9 +214,12 @@ const Post = ({ post, postedBy }) => {
                       year: "numeric",
                     }).format(new Date(post.createdAt))}
                   </Text>
-                  <Box w={1} h={1} borderRadius="full" bg="gray.500" />
+                  <Text fontSize="sm">•</Text>
                   <Text fontSize={"sm"} color={"gray.light"} whiteSpace="nowrap">
-                    {formatDistanceToNow(new Date(post.createdAt))} ago
+                    {formatDistanceToNow(new Date(post.createdAt), {
+                      addSuffix: true,
+                      locale: vi,
+                    })}
                   </Text>
                 </Flex>
               </Skeleton>
@@ -340,7 +344,6 @@ const Post = ({ post, postedBy }) => {
           </Flex>
         </Flex>
       </Flex>
-      <Divider my={4} borderColor="gray.light" opacity={1} />
     </Link>
   );
 };

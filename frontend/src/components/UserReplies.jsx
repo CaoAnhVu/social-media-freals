@@ -56,6 +56,8 @@ const UserReplies = ({ username }) => {
   }, [username, showToast]);
   const handleDeleteReply = async (replyId) => {
     try {
+      replyId.preventDefault();
+      if (!window.confirm("Are you sure you want to delete this post?")) return;
       const res = await fetch(`/api/posts/reply/${replyId}`, {
         method: "DELETE",
       });
@@ -79,8 +81,8 @@ const UserReplies = ({ username }) => {
   }
   if (!replies?.length) {
     return (
-      <Text textAlign={"center"} w={"full"}>
-        Không có bình luận nào
+      <Text textAlign={"center"} w={"full"} color={"red.500"}>
+        There are no comments yet
       </Text>
     );
   }

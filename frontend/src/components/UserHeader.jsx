@@ -1,15 +1,31 @@
-import { Avatar } from "@chakra-ui/avatar";
-import { Box, Flex, Link, Text, VStack } from "@chakra-ui/layout";
+import {
+  Avatar,
+  Box,
+  Flex,
+  Link,
+  Text,
+  VStack,
+  Button,
+  useToast,
+  useColorMode,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@chakra-ui/react";
 import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/menu";
 import { Portal } from "@chakra-ui/portal";
-import { Button, useToast, useColorMode } from "@chakra-ui/react";
 import { BsInstagram } from "react-icons/bs";
 import { CgMoreO } from "react-icons/cg";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { Link as RouterLink } from "react-router-dom";
 import useFollowUnfollow from "../hooks/useFollowUnfollow";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UserReplies from "./UserReplies";
 import UserReposts from "./UserReposts";
 
@@ -19,6 +35,8 @@ const UserHeader = ({ user }) => {
   const { handleFollowUnfollow, following, updating } = useFollowUnfollow(user);
   const { colorMode } = useColorMode();
   const [selectedTab, setSelectedTab] = useState("posts");
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [followersData, setFollowersData] = useState([]);
 
   const copyURL = async () => {
     try {
@@ -41,17 +59,29 @@ const UserHeader = ({ user }) => {
       });
     }
   };
+  useEffect(() => {
+    const fetchFollowers = async () => {
+      const followers = await Promise.all(
+        user.followers.map(async (followerId) => {
+          const res = await fetch(`/api/users/profile/${followerId}`);
+          return await res.json();
+        })
+      );
+      setFollowersData(followers);
+    };
+    fetchFollowers();
+  }, [user.followers]);
 
   return (
     <VStack gap={4} alignItems={"start"}>
       <Flex justifyContent={"space-between"} w={"full"}>
         <Box>
-          <Text fontSize={"2xl"} fontWeight={"bold"}>
+          <Text fontSize={"2xl"} fontWeight={"bold"} mb={2}>
             {user.name}
           </Text>
           <Flex gap={2} alignItems={"center"}>
-            <Text fontSize={"sm"}>{user.username}</Text>
-            <Text fontSize={"xs"} bg={colorMode === "dark" ? "gray.800" : "gray.300"} p={1} borderRadius={"full"}>
+            <Text fontSize={"lg"}> @{user.username}</Text>
+            <Text fontSize={"sm"} bg={colorMode === "dark" ? "gray.800" : "gray.300"} p={2} w={"100px"} textAlign={"center"} borderRadius={"full"}>
               freals.net
             </Text>
           </Flex>
@@ -83,21 +113,60 @@ const UserHeader = ({ user }) => {
       <Text>{user.bio}</Text>
 
       {currentUser?._id === user._id && (
-        <Link as={RouterLink} to="/update">
-          <Button bg={colorMode === "dark" ? "gray.800" : "gray.300"} size={"sm"}>
-            Update Profile
-          </Button>
-        </Link>
+        <Flex justifyContent="center" w="full">
+          <Link as={RouterLink} to="/update">
+            <Button bg={colorMode === "dark" ? "gray.800" : "gray.300"} size={"sm"} w={"600px"}>
+              Update Profile
+            </Button>
+          </Link>
+        </Flex>
       )}
       {currentUser?._id !== user._id && (
         <Button size={"sm"} bg={colorMode === "dark" ? "gray.800" : "gray.300"} onClick={handleFollowUnfollow} isLoading={updating}>
           {following ? "Unfollow" : "Follow"}
         </Button>
       )}
+
+      {/* Modal hiển thị danh sách người theo dõi */}
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Followers</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {followersData.length > 0 ? (
+              followersData.map((follower) => (
+                <Flex key={follower._id} alignItems="center" justifyContent="space-between" mb={2}>
+                  <Flex alignItems="center">
+                    <Avatar name={follower.name} src={follower.profilePic} size="sm" />
+                    <Text ml={2}>{follower.username}</Text>
+                  </Flex>
+                  <Button size="xs" onClick={() => handleFollowUnfollow(follower)}>
+                    {follower.isFollowing ? "Unfollow" : "Follow"}
+                  </Button>
+                </Flex>
+              ))
+            ) : (
+              <Text>No followers found.</Text>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" onClick={onClose}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
       <Flex w={"full"} justifyContent={"space-between"}>
         <Flex gap={2} alignItems={"center"}>
-          <Text color={"gray.light"}>{user.followers.length} followers</Text>
-          <Box w="1" h="1" bg={"gray.light"} borderRadius={"full"}></Box>
+          <Text size={"sm"} color={"gray.light"} onClick={onOpen} cursor={"pointer"}>
+            {user.followers.length} Following
+          </Text>
+          <Text fontSize="sm">•</Text>
+          <Text size={"sm"} color={"gray.light"} onClick={onOpen} cursor={"pointer"}>
+            {user.followers.length} followers
+          </Text>
+          <Text fontSize="sm">•</Text>
           <Link href="https://instagram.com" isExternal color="gray.light">
             instagram.com
           </Link>

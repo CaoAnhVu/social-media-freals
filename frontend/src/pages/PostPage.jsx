@@ -9,6 +9,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import postsAtom from "../atoms/postsAtom";
+import { vi } from "date-fns/locale";
 
 const PostPage = () => {
   const { user, loading } = useGetUserProfile();
@@ -236,15 +237,15 @@ const PostPage = () => {
 
           <Flex alignItems="center" gap={2}>
             {/* Timeline */}
-            <Flex alignItems="center" gap={2} color="gray.500" whiteSpace="nowrap">
-              <Text fontSize="sm">
+            <Flex alignItems="center" gap={2} whiteSpace="nowrap">
+              <Text fontSize="sm" color={"gray.light"}>
                 {new Date(currentPost.createdAt).toLocaleTimeString("vi-VN", {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
               </Text>
               <Text fontSize="sm">•</Text>
-              <Text fontSize="sm">
+              <Text fontSize="sm" color={"gray.light"}>
                 {new Date(currentPost.createdAt).toLocaleDateString("vi-VN", {
                   day: "2-digit",
                   month: "2-digit",
@@ -252,7 +253,12 @@ const PostPage = () => {
                 })}
               </Text>
               <Text fontSize="sm">•</Text>
-              <Text fontSize="sm">{formatDistanceToNow(new Date(currentPost.createdAt))} ago</Text>
+              <Text fontSize={"sm"} color={"gray.light"}>
+                {formatDistanceToNow(new Date(currentPost.createdAt), {
+                  addSuffix: true,
+                  locale: vi,
+                })}
+              </Text>
             </Flex>
 
             {/* Delete Icon */}

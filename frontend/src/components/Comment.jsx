@@ -1,15 +1,17 @@
 import ReactMarkdown from "react-markdown";
 import { Avatar, Divider, Flex, Text, Box, Image, IconButton, Modal, ModalOverlay, ModalContent, ModalCloseButton, useDisclosure } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { useState, memo } from "react";
-
+import { vi } from "date-fns/locale";
 const Comment = ({ reply, lastReply, onDeleteReply }) => {
   const user = useRecoilValue(userAtom);
   const [isDeleting, setIsDeleting] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const navigate = useNavigate();
 
   const handleDelete = async () => {
     if (!reply?._id) {
@@ -34,24 +36,46 @@ const Comment = ({ reply, lastReply, onDeleteReply }) => {
     <>
       <Box mb={lastReply ? 0 : 4} p={4} borderRadius="lg" _hover={{ bg: "whiteAlpha.100" }} transition="all 0.3s">
         <Flex gap={3}>
-          <Avatar src={reply.userProfilePic || "/default-avatar.png"} size={"sm"} _hover={{ transform: "scale(1.1)" }} transition="all 0.3s" />
+          <Avatar
+            src={reply.userProfilePic || "/default-avatar.png"}
+            size={"sm"}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/${user.username}`);
+            }}
+            _hover={{ transform: "scale(1.1)" }}
+            transition="all 0.3s"
+          />
 
           <Box flex="1">
             <Flex justifyContent={"space-between"} alignItems={"center"} mb={2}>
-              <Text fontSize="sm" fontWeight="bold" _hover={{ color: "blue.400" }} cursor="pointer">
-                {reply.username || "Unknown User"}
-              </Text>
+              <Flex alignItems="center" gap={1}>
+                <Text
+                  fontSize="sm"
+                  fontWeight="bold"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(`/${user.username}`);
+                  }}
+                  _hover={{ color: "blue.400" }}
+                  cursor="pointer"
+                >
+                  {reply.username || "Unknown User"}
+                </Text>
+                <Image src="/verified.png" w={4} h={4} ml={1} _hover={{ transform: "scale(1.1)" }} transition="all 0.3s" />
+              </Flex>
+
               <Flex alignItems="center" gap={2}>
                 {/* Timeline */}
-                <Flex alignItems="center" gap={2} color="gray.500" whiteSpace="nowrap">
-                  <Text fontSize="sm">
+                <Flex alignItems="center" gap={2} whiteSpace="nowrap">
+                  <Text fontSize="sm" color={"gray.light"}>
                     {new Date(reply.createdAt).toLocaleTimeString("vi-VN", {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
                   </Text>
                   <Text fontSize="sm">•</Text>
-                  <Text fontSize="sm">
+                  <Text fontSize="sm" color={"gray.light"}>
                     {new Date(reply.createdAt).toLocaleDateString("vi-VN", {
                       day: "2-digit",
                       month: "2-digit",
@@ -59,7 +83,12 @@ const Comment = ({ reply, lastReply, onDeleteReply }) => {
                     })}
                   </Text>
                   <Text fontSize="sm">•</Text>
-                  <Text fontSize="sm">{formatDistanceToNow(new Date(reply.createdAt))} ago</Text>
+                  <Text fontSize={"sm"} color={"gray.light"}>
+                    {formatDistanceToNow(new Date(reply.createdAt), {
+                      addSuffix: true,
+                      locale: vi,
+                    })}
+                  </Text>
                 </Flex>
 
                 {/* Delete Icon */}

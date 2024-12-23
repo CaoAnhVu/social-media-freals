@@ -37,8 +37,8 @@ const SuggestedUsers = () => {
       <Flex
         direction={"column"}
         gap={4}
-        maxH={"500px"} // Thêm chiều cao tối đa
-        overflowY={"auto"} // Thêm scroll
+        maxH={"500px"}
+        overflowY={"auto"}
         sx={{
           "&::-webkit-scrollbar": {
             width: "8px",
@@ -54,19 +54,15 @@ const SuggestedUsers = () => {
       >
         {!loading && suggestedUsers.map((user) => <SuggestedUser key={user._id} user={user} />)}
         {loading &&
-          // Tăng số lượng skeleton items
-          Array.from({ length: 15 }).map((_, idx) => (
+          Array.from({ length: 20 }).map((_, idx) => (
             <Flex key={idx} gap={2} alignItems={"center"} p={"1"} borderRadius={"md"}>
-              {/* avatar skeleton */}
               <Box>
                 <SkeletonCircle size={"10"} />
               </Box>
-              {/* username and fullname skeleton */}
               <Flex w={"full"} flexDirection={"column"} gap={2}>
                 <Skeleton h={"8px"} w={"80px"} />
                 <Skeleton h={"8px"} w={"90px"} />
               </Flex>
-              {/* follow button skeleton */}
               <Flex>
                 <Skeleton h={"20px"} w={"60px"} />
               </Flex>
