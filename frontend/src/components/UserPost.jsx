@@ -11,15 +11,15 @@ const UserPost = ({ postImg, postTitle, likes, replies }) => {
   const [liked, setLiked] = useState(false);
   const { colorMode } = useColorMode();
   return (
-    <Link to={"/markzuckerberg/post/1"}>
+    <Link to={"/Cao Anh Vu/post/1"}>
       <Flex gap={3} mb={4} py={5} _hover={{ bg: colorMode === "dark" ? "whiteAlpha.100" : "gray.100" }}>
         <Flex flexDirection={"column"} alignItems={"center"}>
           <Avatar size="md" name="Mark Zuckerberg" src="/zuck-avatar.png" />
           <Box w="1px" h={"full"} bg="gray.light" my={2}></Box>
           <Box position={"relative"} w={"full"}>
-            <Avatar size="xs" name="John doe" src="https://bit.ly/dan-abramov" position={"absolute"} top={"0px"} left="15px" padding={"2px"} />
-            <Avatar size="xs" name="John doe" src="https://bit.ly/sage-adebayo" position={"absolute"} bottom={"0px"} right="-5px" padding={"2px"} />
-            <Avatar size="xs" name="John doe" src="https://bit.ly/prosper-baba" position={"absolute"} bottom={"0px"} left="4px" padding={"2px"} />
+            <Avatar size="xs" name="Cao Anh Vu" src="https://bit.ly/dan-abramov" position={"absolute"} top={"0px"} left="15px" padding={"2px"} />
+            <Avatar size="xs" name="Cao Anh Vu" src="https://bit.ly/sage-adebayo" position={"absolute"} bottom={"0px"} right="-5px" padding={"2px"} />
+            <Avatar size="xs" name="Cao Anh Vu" src="https://bit.ly/prosper-baba" position={"absolute"} bottom={"0px"} left="4px" padding={"2px"} />
           </Box>
         </Flex>
         <Flex flex={1} flexDirection={"column"} gap={2}>

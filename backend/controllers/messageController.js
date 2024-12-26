@@ -5,7 +5,7 @@ import { v2 as cloudinary } from "cloudinary";
 
 async function sendMessage(req, res) {
   try {
-    const { recipientId, message } = req.body;
+    const { recipientId, message, video } = req.body;
     let { img } = req.body;
     const senderId = req.user._id;
 
@@ -34,6 +34,7 @@ async function sendMessage(req, res) {
       sender: senderId,
       text: message,
       img: img || "",
+      video: video || "",
     });
 
     await Promise.all([
@@ -79,6 +80,28 @@ async function getMessages(req, res) {
   }
 }
 
+const deleteMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const message = await Message.findById(id);
+
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    // Kiểm tra quyền xóa tin nhắn
+    if (message.sender.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: "Unauthorized to delete this message" });
+    }
+
+    await message.deleteOne();
+
+    res.status(200).json({ message: "Message deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 async function getConversations(req, res) {
   const userId = req.user._id;
   try {
@@ -97,4 +120,4 @@ async function getConversations(req, res) {
   }
 }
 
-export { sendMessage, getMessages, getConversations };
+export { sendMessage, getMessages, deleteMessage, getConversations };

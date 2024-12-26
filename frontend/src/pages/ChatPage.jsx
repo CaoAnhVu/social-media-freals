@@ -1,5 +1,5 @@
+import { Box, Button, Flex, InputGroup, InputLeftElement, Input, Skeleton, SkeletonCircle, Text, useColorModeValue } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
-import { Box, Button, Flex, Input, Skeleton, SkeletonCircle, Text, useColorModeValue } from "@chakra-ui/react";
 import Conversation from "../components/Conversation";
 import { GiConversation } from "react-icons/gi";
 import MessageContainer from "../components/MessageContainer";
@@ -8,7 +8,7 @@ import useShowToast from "../hooks/useShowToast";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { conversationsAtom, selectedConversationAtom } from "../atoms/messagesAtom";
 import userAtom from "../atoms/userAtom";
-import { useSocket } from "../context/SocketContext";
+import { useSocket } from "../context/SocketContext.jsx";
 
 const ChatPage = () => {
   const [searchingUser, setSearchingUser] = useState(false);
@@ -19,6 +19,11 @@ const ChatPage = () => {
   const currentUser = useRecoilValue(userAtom);
   const showToast = useShowToast();
   const { socket, onlineUsers } = useSocket();
+
+  const bgColor = useColorModeValue("gray.200", "gray.900");
+  const inputBgColor = useColorModeValue("white", "gray.dark");
+  const bgChatColor = useColorModeValue("white", "gray.dark");
+  const hoverBgColor = useColorModeValue("gray.dark", "gray.light");
 
   useEffect(() => {
     socket?.on("messagesSeen", ({ conversationId }) => {
@@ -114,38 +119,32 @@ const ChatPage = () => {
   };
 
   return (
-    <Box position={"absolute"} left={"50%"} w={{ base: "100%", md: "80%", lg: "750px" }} p={4} mt={16} transform={"translateX(-50%)"}>
-      <Flex
-        gap={4}
-        flexDirection={{ base: "column", md: "row" }}
-        maxW={{
-          sm: "400px",
-          md: "full",
-        }}
-        mx={"auto"}
-      >
-        <Flex flex={30} gap={2} flexDirection={"column"} maxW={{ sm: "250px", md: "full" }} mx={"auto"}>
-          <Text fontWeight={700} color={useColorModeValue("gray.600", "gray.400")}>
-            Your Conversations
+    <Box position={"absolute"} left={"50%"} w={{ base: "100%", md: "80%", lg: "1100px" }} p={4} mt={20} transform={"translateX(-50%)"}>
+      <Flex gap={6} flexDirection={{ base: "column", md: "row" }} maxW={{ sm: "400px", md: "full" }} maxH={{ sm: "400px", md: "full" }} mx="auto" p={4} bg={bgColor} boxShadow="lg" borderRadius="xl">
+        <Flex flex={30} gap={2} flexDirection={"column"} maxW={{ sm: "250px", md: "full" }} mx={"auto"} bg={useColorModeValue("white", "gray.dark")} boxShadow="lg" borderRadius="xl" p={4}>
+          <Text fontWeight={700} fontSize="2xl" mb={2} color={useColorModeValue("gray.dark", "gray.light")}>
+            Đoạn chat
           </Text>
           <form onSubmit={handleConversationSearch}>
-            <Flex alignItems={"center"} gap={2}>
-              <Input placeholder="Search for a user" onChange={(e) => setSearchText(e.target.value)} />
-              <Button size={"sm"} onClick={handleConversationSearch} isLoading={searchingUser}>
-                <SearchIcon />
-              </Button>
-            </Flex>
+            <InputGroup>
+              <InputLeftElement>
+                <Button aria-label="Search" variant="link" onClick={handleConversationSearch} isLoading={searchingUser}>
+                  <SearchIcon color="gray.200" />
+                </Button>
+              </InputLeftElement>
+              <Input bg={inputBgColor} placeholder="Tìm kiếm trên messenger" onChange={(e) => setSearchText(e.target.value)} variant="outline" borderRadius="full" />
+            </InputGroup>
           </form>
 
           {loadingConversations &&
             [0, 1, 2, 3, 4].map((_, i) => (
-              <Flex key={i} gap={4} alignItems={"center"} p={"1"} borderRadius={"md"}>
+              <Flex key={i} gap={4} alignItems="center" p={4} borderRadius="md" bg={bgChatColor} _hover={{ bg: hoverBgColor, cursor: "pointer" }} transition="background-color 0.2s">
                 <Box>
-                  <SkeletonCircle size={"10"} />
+                  <SkeletonCircle size="10" />
                 </Box>
-                <Flex w={"full"} flexDirection={"column"} gap={3}>
-                  <Skeleton h={"10px"} w={"80px"} />
-                  <Skeleton h={"8px"} w={"90%"} />
+                <Flex w="full" flexDirection="column" gap={2}>
+                  <Skeleton h="12px" w="80px" />
+                  <Skeleton h="10px" w="90%" />
                 </Flex>
               </Flex>
             ))}
@@ -154,9 +153,11 @@ const ChatPage = () => {
             conversations.map((conversation) => <Conversation key={conversation._id} isOnline={onlineUsers.includes(conversation.participants[0]._id)} conversation={conversation} />)}
         </Flex>
         {!selectedConversation._id && (
-          <Flex flex={70} borderRadius={"md"} p={2} flexDir={"column"} alignItems={"center"} justifyContent={"center"} height={"400px"}>
-            <GiConversation size={100} />
-            <Text fontSize={20}>Select a conversation to start messaging</Text>
+          <Flex flex={70} borderRadius="lg" p={4} flexDir="column" alignItems="center" justifyContent="center" height="400px" bg={("gray.50", "gray.800")} boxShadow="lg">
+            <GiConversation size={100} color={("teal.400", "teal.300")} />
+            <Text fontSize="xl" fontWeight="bold" mt={4} color={("gray.600", "gray.300")}>
+              Select a conversation to start messaging
+            </Text>
           </Flex>
         )}
 

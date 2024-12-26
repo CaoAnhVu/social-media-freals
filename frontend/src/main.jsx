@@ -8,7 +8,7 @@ import { extendTheme } from "@chakra-ui/theme-utils";
 import { ColorModeScript } from "@chakra-ui/color-mode";
 import { BrowserRouter } from "react-router-dom";
 import { RecoilRoot } from "recoil";
-import { SocketContextProvider } from "./context/SocketContext.jsx";
+import { SocketContextProvider } from "./context/SocketContext";
 
 // Global styles configuration
 const styles = {
@@ -16,15 +16,15 @@ const styles = {
     body: {
       color: mode("gray.800", "whiteAlpha.900")(props),
       bg: mode("gray.100", "#101010")(props),
-      fontFamily: "Segoe UI, Noto Emoji, Arial, sans-serif", // Add a global font family for consistency
+      fontFamily: "Segoe UI, Noto Emoji, Arial, sans-serif",
     },
   }),
 };
 
 // Chakra theme configuration
 const config = {
-  initialColorMode: "dark", // Default color mode
-  useSystemColorMode: true, // Allow system to control color mode
+  initialColorMode: "dark",
+  useSystemColorMode: true,
 };
 
 // Custom color configurations

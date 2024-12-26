@@ -4,6 +4,7 @@ import useShowToast from "./useShowToast";
 const usePreviewImg = () => {
   const [imgUrl, setImgUrl] = useState(null);
   const showToast = useShowToast();
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("image/")) {
@@ -27,7 +28,6 @@ const usePreviewVideo = () => {
   const showToast = useShowToast();
 
   const handleVideoPreview = (e) => {
-    // Đổi tên thành handleVideoPreview
     const file = e.target.files[0];
     if (file && file.type.startsWith("video/")) {
       const reader = new FileReader();

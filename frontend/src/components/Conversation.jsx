@@ -19,7 +19,7 @@ const Conversation = ({ conversation, isOnline }) => {
       p={"1"}
       _hover={{
         cursor: "pointer",
-        bg: useColorModeValue("gray.600", "gray.dark"),
+        bg: useColorModeValue("gray.600", "gray.600"),
         color: "white",
       }}
       onClick={() =>
@@ -31,7 +31,7 @@ const Conversation = ({ conversation, isOnline }) => {
           mock: conversation.mock,
         })
       }
-      bg={selectedConversation?._id === conversation._id ? (colorMode === "light" ? "gray.400" : "gray.dark") : ""}
+      bg={selectedConversation?._id === conversation._id ? (colorMode === "light" ? "gray.300" : "gray.500") : ""}
       borderRadius={"md"}
     >
       <WrapItem>

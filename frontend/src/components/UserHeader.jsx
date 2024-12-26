@@ -1,29 +1,11 @@
-import {
-  Avatar,
-  Box,
-  Flex,
-  Link,
-  Text,
-  VStack,
-  Button,
-  useToast,
-  useColorMode,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { Avatar, Box, Flex, Link, Text, VStack, Button, useToast, useColorMode, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure } from "@chakra-ui/react";
 import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/menu";
 import { Portal } from "@chakra-ui/portal";
 import { BsInstagram } from "react-icons/bs";
 import { CgMoreO } from "react-icons/cg";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import useFollowUnfollow from "../hooks/useFollowUnfollow";
 import { useState, useEffect } from "react";
 import UserReplies from "./UserReplies";
@@ -34,9 +16,12 @@ const UserHeader = ({ user }) => {
   const currentUser = useRecoilValue(userAtom); // logged in user
   const { handleFollowUnfollow, following, updating } = useFollowUnfollow(user);
   const { colorMode } = useColorMode();
+  const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState("posts");
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isFollowersOpen, onOpen: onFollowersOpen, onClose: onFollowersClose } = useDisclosure();
+  const { isOpen: isFollowingOpen, onOpen: onFollowingOpen, onClose: onFollowingClose } = useDisclosure();
   const [followersData, setFollowersData] = useState([]);
+  const [followingData, setFollowingData] = useState([]);
 
   const copyURL = async () => {
     try {
@@ -69,8 +54,20 @@ const UserHeader = ({ user }) => {
       );
       setFollowersData(followers);
     };
+
+    const fetchFollowing = async () => {
+      const following = await Promise.all(
+        user.following.map(async (followingId) => {
+          const res = await fetch(`/api/users/profile/${followingId}`);
+          return await res.json();
+        })
+      );
+      setFollowingData(following);
+    };
+
     fetchFollowers();
-  }, [user.followers]);
+    fetchFollowing();
+  }, [user.followers, user.following]);
 
   return (
     <VStack gap={4} alignItems={"start"}>
@@ -127,8 +124,8 @@ const UserHeader = ({ user }) => {
         </Button>
       )}
 
-      {/* Modal hiển thị danh sách người theo dõi */}
-      <Modal isOpen={isOpen} onClose={onClose}>
+      {/* Modal Followers */}
+      <Modal isOpen={isFollowersOpen} onClose={onFollowersClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Followers</ModalHeader>
@@ -137,12 +134,48 @@ const UserHeader = ({ user }) => {
             {followersData.length > 0 ? (
               followersData.map((follower) => (
                 <Flex key={follower._id} alignItems="center" justifyContent="space-between" mb={2}>
-                  <Flex alignItems="center">
-                    <Avatar name={follower.name} src={follower.profilePic} size="sm" />
-                    <Text ml={2}>{follower.username}</Text>
+                  <Flex gap={2} to={`${follower.username}`}>
+                    <Avatar
+                      name={follower.name}
+                      src={follower.profilePic}
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate(`/${follower.username}`);
+                      }}
+                      _hover={{ transform: "scale(1.1)" }}
+                      transition="all 0.3s"
+                      cursor={"pointer"}
+                    />
+                    <Box>
+                      <Text
+                        fontSize={"sm"}
+                        fontWeight={"bold"}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigate(`/${follower.username}`);
+                        }}
+                        _hover={{ color: "blue.400" }}
+                        cursor="pointer"
+                      >
+                        {follower?.username}
+                      </Text>
+                      <Text color={"gray.500"} fontSize={"sm"} cursor={"pointer"}>
+                        {follower.name}
+                      </Text>
+                    </Box>
                   </Flex>
-                  <Button size="xs" onClick={() => handleFollowUnfollow(follower)}>
-                    {follower.isFollowing ? "Unfollow" : "Follow"}
+                  <Button
+                    size="xs"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate(`/${following.user.username}`);
+                    }}
+                    _hover={{ transform: "scale(1.1)" }}
+                    transition="all 0.3s"
+                    cursor={"pointer"}
+                  >
+                    Follow
                   </Button>
                 </Flex>
               ))
@@ -150,20 +183,77 @@ const UserHeader = ({ user }) => {
               <Text>No followers found.</Text>
             )}
           </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="blue" onClick={onClose}>
-              Close
-            </Button>
-          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Modal Following */}
+      <Modal isOpen={isFollowingOpen} onClose={onFollowingClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Following</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {followingData.length > 0 ? (
+              followingData.map((following) => (
+                <Flex key={following._id} alignItems="center" justifyContent="space-between" mb={2}>
+                  <Flex gap={2} to={`${following.username}`}>
+                    <Avatar
+                      name={following.name}
+                      src={following.profilePic}
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate(`/${following.username}`);
+                      }}
+                      _hover={{ transform: "scale(1.1)" }}
+                      transition="all 0.3s"
+                      cursor={"pointer"}
+                    />
+                    <Box>
+                      <Text
+                        fontSize={"sm"}
+                        fontWeight={"bold"}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigate(`/${following.username}`);
+                        }}
+                        _hover={{ color: "blue.400" }}
+                        cursor="pointer"
+                      >
+                        {following?.username}
+                      </Text>
+                      <Text color={"gray.500"} fontSize={"sm"} cursor={"pointer"}>
+                        {following.name}
+                      </Text>
+                    </Box>
+                  </Flex>
+                  <Button
+                    size="xs"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate(`/${following.username}`);
+                    }}
+                    _hover={{ transform: "scale(1.1)" }}
+                    transition="all 0.3s"
+                    cursor={"pointer"}
+                  >
+                    Unfollow
+                  </Button>
+                </Flex>
+              ))
+            ) : (
+              <Text>No following found.</Text>
+            )}
+          </ModalBody>
         </ModalContent>
       </Modal>
       <Flex w={"full"} justifyContent={"space-between"}>
         <Flex gap={2} alignItems={"center"}>
-          <Text size={"sm"} color={"gray.light"} onClick={onOpen} cursor={"pointer"}>
-            {user.followers.length} Following
+          <Text size={"sm"} color={"gray.light"} onClick={onFollowingOpen} cursor={"pointer"}>
+            {user.following.length} Following
           </Text>
           <Text fontSize="sm">•</Text>
-          <Text size={"sm"} color={"gray.light"} onClick={onOpen} cursor={"pointer"}>
+          <Text size={"sm"} color={"gray.light"} onClick={onFollowersOpen} cursor={"pointer"}>
             {user.followers.length} followers
           </Text>
           <Text fontSize="sm">•</Text>

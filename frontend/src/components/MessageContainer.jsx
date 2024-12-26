@@ -6,8 +6,9 @@ import useShowToast from "../hooks/useShowToast.js";
 import { conversationsAtom, selectedConversationAtom } from "../atoms/messagesAtom.js";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom.js";
-import { useSocket } from "../context/SocketContext.jsx";
 import messageSound from "../assets/sounds/message.mp3";
+import { useSocket } from "../context/SocketContext.jsx";
+
 const MessageContainer = () => {
   const showToast = useShowToast();
   const selectedConversation = useRecoilValue(selectedConversationAtom);
@@ -103,9 +104,8 @@ const MessageContainer = () => {
 
     getMessages();
   }, [showToast, selectedConversation.userId, selectedConversation.mock]);
-
   return (
-    <Flex flex="70" bg={useColorModeValue("gray.200", "gray.dark")} borderRadius={"md"} p={2} flexDirection={"column"}>
+    <Flex flex="70" bg={useColorModeValue("white", "gray.dark")} borderRadius={"md"} p={2} flexDirection={"column"}>
       {/* Message header */}
       <Flex w={"full"} h={12} alignItems={"center"} gap={2}>
         <Avatar src={selectedConversation.userProfilePic} size={"sm"} />
@@ -116,7 +116,7 @@ const MessageContainer = () => {
 
       <Divider />
 
-      <Flex flexDir={"column"} gap={4} my={4} p={2} height={"400px"} overflowY={"auto"}>
+      <Flex flexDir={"column"} overflow={"hidden"} gap={4} my={4} p={2} height={"400px"} overflowY={"auto"}>
         {loadingMessages &&
           [...Array(5)].map((_, i) => (
             <Flex key={i} gap={2} alignItems={"center"} p={1} borderRadius={"md"} alignSelf={i % 2 === 0 ? "flex-start" : "flex-end"}>

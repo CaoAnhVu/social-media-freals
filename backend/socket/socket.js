@@ -35,6 +35,17 @@ io.on("connection", (socket) => {
       console.log(error);
     }
   });
+  socket.on("deleteMessage", async ({ messageId, conversationId }) => {
+    try {
+      // Xóa tin nhắn từ database
+      await Message.findByIdAndDelete(messageId);
+
+      // Broadcast sự kiện xóa tin nhắn đến tất cả clients trong conversation
+      io.emit("messageDeleted", { messageId, conversationId });
+    } catch (error) {
+      console.error("Error deleting message:", error);
+    }
+  });
 
   socket.on("disconnect", () => {
     console.log("user disconnected");

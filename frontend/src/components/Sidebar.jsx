@@ -1,7 +1,7 @@
 import { Box, Flex, Link, IconButton, useColorMode, Text } from "@chakra-ui/react";
 import { AiFillHome } from "react-icons/ai";
 import { RxAvatar } from "react-icons/rx";
-import { BsFillChatQuoteFill } from "react-icons/bs";
+import { FaFacebookMessenger } from "react-icons/fa";
 import { GrGroup } from "react-icons/gr";
 import { MdOutlineSettings } from "react-icons/md";
 import { FiLogOut } from "react-icons/fi";
@@ -60,7 +60,7 @@ const Sidebar = () => {
           </Link>
           <Link _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }} as={RouterLink} to="/chat" display="flex" alignItems="center">
             <Flex alignItems="center">
-              <IconButton icon={<BsFillChatQuoteFill />} aria-label="Chat" size="lg" />
+              <IconButton icon={<FaFacebookMessenger />} aria-label="Chat" size="lg" />
               <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} opacity={0} transition="opacity 0.3s ease" _groupHover={{ opacity: 1 }}>
                 Messenger
               </Text>
