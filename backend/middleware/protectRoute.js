@@ -8,7 +8,7 @@ const protectRoute = async (req, res, next) => {
 
     if (!token) {
       console.log("No token provided"); // Log khi không có token
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: "Vui lòng đăng nhập" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

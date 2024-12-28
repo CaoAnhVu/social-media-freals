@@ -222,6 +222,26 @@ const getSuggestedUsers = async (req, res) => {
   }
 };
 
+const searchUsers = async (req, res) => {
+  try {
+    const { username } = req.query;
+
+    if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+
+    const users = await User.find({
+      username: { $regex: username, $options: "i" },
+      _id: { $ne: req.user._id },
+    }).select("username profilePic name");
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Search users error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 const freezeAccount = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -238,4 +258,4 @@ const freezeAccount = async (req, res) => {
   }
 };
 
-export { signupUser, loginUser, logoutUser, followUnFollowUser, updateUser, getUserProfile, getSuggestedUsers, freezeAccount };
+export { signupUser, loginUser, logoutUser, followUnFollowUser, updateUser, searchUsers, getUserProfile, getSuggestedUsers, freezeAccount };

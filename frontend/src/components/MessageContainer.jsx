@@ -7,7 +7,7 @@ import { conversationsAtom, selectedConversationAtom } from "../atoms/messagesAt
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom.js";
 import messageSound from "../assets/sounds/message.mp3";
-import { useSocket } from "../context/SocketContext.jsx";
+import { useSocket } from "../context/SocketContext";
 
 const MessageContainer = () => {
   const showToast = useShowToast();
@@ -15,18 +15,61 @@ const MessageContainer = () => {
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [messages, setMessages] = useState([]);
   const currentUser = useRecoilValue(userAtom);
-  const { socket } = useSocket();
+  const { socket, isConnected } = useSocket();
   const setConversations = useSetRecoilState(conversationsAtom);
   const messageEndRef = useRef(null);
+
+  useEffect(() => {
+    if (!socket || !isConnected || !selectedConversation) return;
+    // 1. Lắng nghe tin nhắn mới
+    socket.on("newMessage", (message) => {
+      if (selectedConversation._id === message.conversationId) {
+        setMessages((prev) => [...prev, message]);
+
+        if (document.hasFocus()) {
+          socket.emit("markMessageAsSeen", {
+            conversationId: message.conversationId,
+            userId: selectedConversation.userId,
+          });
+        }
+      }
+    });
+
+    // 2. Lắng nghe sự kiện tin nhắn đã xem
+    socket.on("messageSeen", ({ conversationId }) => {
+      if (selectedConversation._id === conversationId) {
+        setMessages((prev) =>
+          prev.map((msg) => ({
+            ...msg,
+            seen: true,
+          }))
+        );
+      }
+    });
+    // 3. Lắng nghe sự kiện xóa tin nhắn
+    socket.on("messageDeleted", ({ messageId, conversationId }) => {
+      if (selectedConversation._id === conversationId) {
+        setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
+      }
+    });
+
+    // Cleanup function
+    return () => {
+      if (socket) {
+        socket.off("newMessage");
+        socket.off("messageSeen");
+        socket.off("messageDeleted");
+      }
+    };
+  }, [socket, isConnected, selectedConversation, selectedConversation.userId]);
 
   useEffect(() => {
     socket.on("newMessage", (message) => {
       if (selectedConversation._id === message.conversationId) {
         setMessages((prev) => [...prev, message]);
       }
-
-      // make a sound if the window is not focused
-      if (!document.hasFocus()) {
+      console.log("../assets/sounds/message.mp3", messageSound);
+      if (document.hasFocus()) {
         const sound = new Audio(messageSound);
         sound.play();
       }
@@ -116,7 +159,7 @@ const MessageContainer = () => {
 
       <Divider />
 
-      <Flex flexDir={"column"} overflow={"hidden"} gap={4} my={4} p={2} height={"400px"} overflowY={"auto"}>
+      <Flex flexDir={"column"} overflow={"hidden"} gap={4} my={4} p={2} height={"500px"} overflowY={"auto"}>
         {loadingMessages &&
           [...Array(5)].map((_, i) => (
             <Flex key={i} gap={2} alignItems={"center"} p={1} borderRadius={"md"} alignSelf={i % 2 === 0 ? "flex-start" : "flex-end"}>

@@ -7,9 +7,11 @@ import cookieParser from "cookie-parser";
 import userRoutes from "./routes/userRoutes.js"; // Import routes as a module
 import postRoutes from "./routes/postRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import groupRoutes from "./routes/groupRoutes.js";
 import { v2 as cloudinary } from "cloudinary";
 import { app, server } from "./socket/socket.js";
 import job from "./cron/cron.js";
+
 dotenv.config();
 
 connectDB();
@@ -31,6 +33,7 @@ app.use(cookieParser());
 
 // Use imported routes
 app.use("/api/users", userRoutes);
+app.use("/api/groups", groupRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/messages", messageRoutes);
 

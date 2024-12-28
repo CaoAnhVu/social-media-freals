@@ -6,7 +6,7 @@ import { conversationsAtom, selectedConversationAtom } from "../atoms/messagesAt
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { BsFillImageFill, BsCameraVideo } from "react-icons/bs";
 import { usePreviewImg, usePreviewVideo } from "../hooks/usePreviewImg";
-
+import { useSocket } from "../context/SocketContext";
 const MessageInput = ({ setMessages }) => {
   const [messageText, setMessageText] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -16,7 +16,7 @@ const MessageInput = ({ setMessages }) => {
   const showToast = useShowToast();
   const { handleImageChange: handleImagePreview, imgUrl, setImgUrl } = usePreviewImg();
   const { handleVideoPreview, videoUrl, setVideoUrl } = usePreviewVideo();
-
+  const { socket } = useSocket();
   const selectedConversation = useRecoilValue(selectedConversationAtom);
   const setConversations = useSetRecoilState(conversationsAtom);
 
@@ -65,6 +65,7 @@ const MessageInput = ({ setMessages }) => {
     setIsSending(true);
 
     try {
+      // 1. Gửi tin nhắn lên server qua API
       const res = await fetch("/api/messages", {
         method: "POST",
         headers: {
@@ -82,11 +83,18 @@ const MessageInput = ({ setMessages }) => {
         showToast("Error", data.error, "error");
         return;
       }
-      console.log(data);
-      setMessages((messages) => [...messages, data]);
 
+      // 2. Emit sự kiện tin nhắn mới qua socket
+      socket.emit("sendMessage", {
+        message: data,
+        recipientId: selectedConversation.userId,
+        conversationId: selectedConversation._id,
+      });
+
+      // 3. Cập nhật UI
+      setMessages((prev) => [...prev, data]);
       setConversations((prevConvs) => {
-        const updatedConversations = prevConvs.map((conversation) => {
+        return prevConvs.map((conversation) => {
           if (conversation._id === selectedConversation._id) {
             return {
               ...conversation,
@@ -98,8 +106,9 @@ const MessageInput = ({ setMessages }) => {
           }
           return conversation;
         });
-        return updatedConversations;
       });
+
+      // 4. Reset form
       setMessageText("");
       setImgUrl(null);
       setVideoUrl(null);

@@ -25,8 +25,13 @@ const UserPage = () => {
       try {
         const res = await fetch("/api/posts/user/" + username);
         const data = await res.json();
-        console.log("Fetched posts:", data);
-        setPosts(data);
+        // Kiểm tra xem data có phải là mảng không
+        if (Array.isArray(data)) {
+          setPosts(data);
+        } else {
+          console.error("Data không phải là mảng:", data);
+          setPosts([]); // Set một mảng rỗng nếu data không phải là mảng
+        }
       } catch (error) {
         showToast("Error", error.message, "error");
         setPosts([]);
@@ -87,7 +92,7 @@ const UserPage = () => {
         >
           <UserHeader user={user} />
 
-          {!fetchingPosts && (!posts || posts.length === 0) && <h1>User has no posts.</h1>}
+          {!fetchingPosts && (!posts || !Array.isArray(posts) || posts.length === 0) && <h1>User has no posts.</h1>}
 
           {fetchingPosts && (
             <Flex justifyContent={"center"} my={12}>
@@ -95,9 +100,7 @@ const UserPage = () => {
             </Flex>
           )}
 
-          {posts.map((post) => (
-            <Post key={post._id} post={post} postedBy={post.postedBy} />
-          ))}
+          {Array.isArray(posts) && posts.map((post) => <Post key={post._id} post={post} postedBy={post.postedBy} />)}
         </Box>
       </Box>
     </>

@@ -3,7 +3,7 @@ import { selectedConversationAtom } from "../atoms/messagesAtom";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { BsCheck2All, BsThreeDots } from "react-icons/bs";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import useShowToast from "../hooks/useShowToast.js";
 import { useSocket } from "../context/SocketContext.jsx";
 const Message = ({ ownMessage, message, setMessages }) => {
@@ -14,7 +14,39 @@ const Message = ({ ownMessage, message, setMessages }) => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const themeChatColor = useColorModeValue("gray.dark", "gray.100");
   const showToast = useShowToast();
-  const { socket } = useSocket();
+  const { socket, isConnected } = useSocket();
+
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    // Xử lý tin nhắn bị xóa
+    const handleMessageDeleted = ({ messageId, conversationId }) => {
+      if (message.conversationId === conversationId) {
+        setMessages((prev) => prev.filter((m) => m._id !== messageId));
+      }
+    };
+
+    // Xử lý tin nhắn đã xem
+    const handleMessagesSeen = ({ conversationId }) => {
+      if (message.conversationId === conversationId) {
+        setMessages((prev) =>
+          prev.map((m) => ({
+            ...m,
+            seen: true,
+          }))
+        );
+      }
+    };
+
+    socket.on("messageDeleted", handleMessageDeleted);
+    socket.on("messagesSeen", handleMessagesSeen);
+
+    return () => {
+      socket.off("messageDeleted", handleMessageDeleted);
+      socket.off("messagesSeen", handleMessagesSeen);
+    };
+  }, [socket, isConnected, message.conversationId, setMessages]);
+  // Xử lý xóa tin nhắn
   const handleDeleteMessage = async () => {
     try {
       setIsDeleting(true);
@@ -22,22 +54,41 @@ const Message = ({ ownMessage, message, setMessages }) => {
         method: "DELETE",
       });
       const data = await res.json();
+
       if (data.error) {
         showToast("Error", data.error, "error");
         return;
       }
+
+      // Emit sự kiện xóa tin nhắn
       socket.emit("deleteMessage", {
         messageId: message._id,
         conversationId: message.conversationId,
       });
-      showToast("Success", "Message deleted", "success");
-      setMessages((prev) => prev.filter((m) => m._id !== message._id));
+
+      showToast("Success", "Đã xóa tin nhắn", "success");
     } catch (error) {
       showToast("Error", error.message, "error");
     } finally {
       setIsDeleting(false);
     }
   };
+
+  // Xử lý đánh dấu đã xem
+  const handleMarkAsSeen = useCallback(() => {
+    if (!message.seen && !ownMessage) {
+      socket.emit("markMessagesAsSeen", {
+        conversationId: message.conversationId,
+        userId: selectedConversation.userId,
+      });
+    }
+  }, [message.seen, ownMessage, message.conversationId, selectedConversation.userId, socket]);
+
+  useEffect(() => {
+    if (!ownMessage && !message.seen) {
+      handleMarkAsSeen();
+    }
+  }, [message, ownMessage, handleMarkAsSeen]);
   return (
     <>
       {ownMessage ? (

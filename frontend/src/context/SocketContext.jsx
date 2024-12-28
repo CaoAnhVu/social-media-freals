@@ -1,33 +1,59 @@
+// frontend/src/context/SocketContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
-import { useRecoilValue } from "recoil";
 import io from "socket.io-client";
+import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 
-const SocketContext = createContext();
+const SocketContext = createContext(null);
 
 export const useSocket = () => {
-  return useContext(SocketContext);
+  const context = useContext(SocketContext);
+  if (context === undefined) {
+    // Thay đổi điều kiện kiểm tra
+    throw new Error("useSocket must be used within a SocketProvider");
+  }
+  return context;
 };
 
 export const SocketContextProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
-  const [onlineUsers, setOnlineUsers] = useState([]);
   const user = useRecoilValue(userAtom);
 
   useEffect(() => {
-    const socket = io("/", {
+    let newSocket;
+    if (!user?._id) return;
+
+    newSocket = io("http://localhost:5000", {
       query: {
-        userId: user?._id,
+        userId: user._id,
       },
+      transports: ["websocket"],
+      withCredentials: true,
     });
 
-    setSocket(socket);
-
-    socket.on("getOnlineUsers", (users) => {
-      setOnlineUsers(users);
+    newSocket.on("connect", () => {
+      console.log("Socket connected", newSocket.id);
+      newSocket.emit("register", {
+        userId: user._id,
+        socketId: newSocket.id,
+      });
     });
-    return () => socket && socket.close();
+
+    newSocket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      if (newSocket) {
+        newSocket.disconnect();
+      }
+    };
   }, [user?._id]);
-
-  return <SocketContext.Provider value={{ socket, onlineUsers }}>{children}</SocketContext.Provider>;
+  const value = {
+    socket,
+    isConnected: !!socket?.connected,
+  };
+  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 };

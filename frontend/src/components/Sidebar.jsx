@@ -2,7 +2,8 @@ import { Box, Flex, Link, IconButton, useColorMode, Text } from "@chakra-ui/reac
 import { AiFillHome } from "react-icons/ai";
 import { RxAvatar } from "react-icons/rx";
 import { FaFacebookMessenger } from "react-icons/fa";
-import { GrGroup } from "react-icons/gr";
+// import { GrGroup } from "react-icons/gr";
+import { MdGroups } from "react-icons/md";
 import { MdOutlineSettings } from "react-icons/md";
 import { FiLogOut } from "react-icons/fi";
 import { CiLogin } from "react-icons/ci";
@@ -66,14 +67,31 @@ const Sidebar = () => {
               </Text>
             </Flex>
           </Link>
-          <Link _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }} as={RouterLink} to="/groups" display="flex" alignItems="center">
+          <Link
+            _hover={{
+              cursor: "pointer",
+              color: "red.500",
+              textDecoration: "none",
+              fontWeight: "bold",
+            }}
+            as={RouterLink}
+            to="/community"
+            display="flex"
+            alignItems="center"
+          >
             <Flex alignItems="center">
-              <IconButton icon={<GrGroup />} aria-label="Groups" size="lg" />
+              <IconButton
+                icon={<MdGroups />} // Sử dụng icon mới
+                aria-label="Community"
+                size="lg"
+                _hover={{ bg: "red.500", color: "white" }}
+              />
               <Text ml={4} fontSize="lg" whiteSpace="nowrap" overflow="hidden" color={colorMode === "dark" ? "white" : "black"} opacity={0} transition="opacity 0.3s ease" _groupHover={{ opacity: 1 }}>
                 Community
               </Text>
             </Flex>
           </Link>
+
           <Link _hover={{ cursor: "pointer", color: "red.500", textDecoration: "none", fontWeight: "bold" }} as={RouterLink} to="/settings" display="flex" alignItems="center">
             <Flex alignItems="center">
               <IconButton icon={<MdOutlineSettings />} aria-label="Settings" size="lg" />

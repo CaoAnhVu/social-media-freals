@@ -12,6 +12,9 @@ import UpdateProfilePage from "./pages/UpdateProfilePage";
 import CreatePost from "./components/CreatePost";
 import ChatPage from "./pages/ChatPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import CommunityPage from "./pages/CommunityPage";
+import GroupPage from "./pages/GroupPage";
+
 // import LogoutButton from "./components/LogoutButton";
 
 function App() {
@@ -44,6 +47,8 @@ function App() {
           <Route path="/:username/post/:pid" element={<PostPage />} />
           <Route path="/chat" element={user ? <ChatPage /> : <Navigate to={"/auth"} />} />
           <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to={"/auth"} />} />
+          <Route path="/community" element={user ? <CommunityPage /> : <Navigate to="/auth" />} />
+          <Route path="/groups/:id" element={user ? <GroupPage /> : <Navigate to="/auth" />} />
         </Routes>
       </Container>
     </Box>
