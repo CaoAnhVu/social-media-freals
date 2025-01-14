@@ -1,16 +1,34 @@
 {
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "sever.js",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development nodemon backend/sever.js",
+    "start": "cross-env NODE_ENV=production node backend/sever.js",
+    "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
+  },
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
-    "@emoji-mart/react": "^1.1.1",
-    "@tanstack/react-query": "^5.60.5",
-    "@vitejs/plugin-react": "^4.3.4",
-    "axios": "^1.7.7",
-    "cloudinary": "^1.41.3",
-    "cron": "^3.2.1",
-    "emoji-mart": "^5.6.0",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.5.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "cron": "^3.5.0",
+    "dotenv": "^16.4.5",
     "express": "^4.21.1",
-    "http": "^0.0.1-security",
-    "https": "^1.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.7.1",
     "multer": "^1.4.5-lts.1",
-    "socket.io": "^4.8.1"
+    "react-mentions": "^4.4.10",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.1.7"
   }
 }
