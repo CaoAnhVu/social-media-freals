@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: freals
+    env: node
+    buildCommand: npm run build
+    startCommand: npm start
+    nodeVersion: 20.17.0
+    envVars:
+      - key: NODE_ENV
+        value: production

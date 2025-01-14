@@ -2,6 +2,9 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "sever.js",
+  "engines": {
+    "node": "20.17.0"
+  },
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon backend/sever.js",
     "start": "cross-env NODE_ENV=production node backend/sever.js",
@@ -24,6 +27,7 @@
     "mongoose": "^8.7.1",
     "multer": "^1.4.5-lts.1",
     "react-mentions": "^4.4.10",
+    "semver": "^7.6.3",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"
   },
